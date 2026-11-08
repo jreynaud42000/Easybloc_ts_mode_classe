@@ -111,7 +111,7 @@ async function ouvrirSeance() {
 
 function choisirEleves(def, classe = null) {
     const groupes = (def.groupes && def.groupes.length) ? def.groupes : [{ nom: 'Groupe', eleves: [] }];
-    const v = voile('<div class="ex-haut"><h2>📂 ' + esc(def.titre) + '</h2><button class="ex-x" data-f="fermer" title="Fermer">✕</button></div>' +
+    const v = voile('<div class="ex-haut"><h2>' + esc(def.titre) + '</h2><button class="ex-x" data-f="fermer" title="Fermer">✕</button></div>' +
         '<p>' + esc(def.classe ? def.classe + ' · ' : '') + def.exercices.length + ' exercice' + (def.exercices.length > 1 ? 's' : '') +
         (def.mode === 'eval' ? ' · <b>évaluation</b>' + (def.minutes ? ' (' + def.minutes + ' min)' : '') : ' · entraînement') + '</p>' +
         '<div class="se-form"><label>Ton groupe <select id="se-groupe">' + groupes.map((g, i) => '<option value="' + i + '">' + esc(g.nom) + '</option>').join('') + '</select></label></div>' +
@@ -169,7 +169,7 @@ async function rejoindreClasse() {
     const info = await infoClasse();
     if (!info || !info.actif) { alert('Aucune séance n\'est diffusée dans la classe pour l\'instant.'); return; }
     if (moteur().enEvaluation()) { alert('Une évaluation est en cours : termine-la d\'abord.'); return; }
-    const v = voile('<div class="ex-haut"><h2>🏫 ' + esc(info.titre) + '</h2><button class="ex-x" data-f="fermer" title="Fermer">✕</button></div>' +
+    const v = voile('<div class="ex-haut"><h2>' + esc(info.titre) + '</h2><button class="ex-x" data-f="fermer" title="Fermer">✕</button></div>' +
         '<p>' + esc(info.classe ? info.classe + ' · ' : '') + (info.mode === 'eval' ? 'évaluation' : 'entraînement') +
         ' — séance diffusée par le poste de ton professeur.</p>' +
         '<label class="se-libre">Code affiché au tableau <input id="se-code" type="text" maxlength="5" autocomplete="off" spellcheck="false" ' +
@@ -204,8 +204,8 @@ window.seanceRendre = async function () {
     if (classeActive) {
         try {
             const reponse = await envoyerAuProf(true);
-            voile('<div class="ex-haut"><h2>📤 Travail envoyé</h2><button class="ex-x" data-f="fermer" title="Fermer">✕</button></div>' +
-                '<p class="ex-ok">✔ Ton travail est arrivé sur le poste de ton professeur (' + esc(reponse.heure) + ').</p>' +
+            voile('<div class="ex-haut"><h2>Travail envoyé</h2><button class="ex-x" data-f="fermer" title="Fermer">✕</button></div>' +
+                '<p class="ex-ok">✓ Ton travail est arrivé sur le poste de ton professeur (' + esc(reponse.heure) + ').</p>' +
                 '<p class="ex-note">Tu peux continuer : ton travail est encore envoyé automatiquement, et « Rendre » à nouveau remplace l\'envoi précédent.</p>' +
                 '<div class="ex-boutons"><button class="ex-primaire" data-f="fermer">OK</button></div>')
                 .addEventListener('click', ev => { if (ev.target.closest('[data-f="fermer"]')) fermer(); });
@@ -217,7 +217,7 @@ window.seanceRendre = async function () {
     const nom = nomRendu(r);
     telecharger(nom, JSON.stringify(r));
     const faits = r.exercices.filter(e => e.statut !== 'non fait').length;
-    voile('<div class="ex-haut"><h2>📤 Travail rendu</h2><button class="ex-x" data-f="fermer" title="Fermer">✕</button></div>' +
+    voile('<div class="ex-haut"><h2>Travail rendu</h2><button class="ex-x" data-f="fermer" title="Fermer">✕</button></div>' +
         '<p>Le fichier <b>' + esc(nom) + '</b> vient d\'être téléchargé (dossier « Téléchargements »).</p>' +
         '<p><b>Dépose-le maintenant</b> là où ton professeur l\'a demandé : casier de l\'ENT, devoir Moodle, dossier partagé…</p>' +
         '<p class="ex-note">' + faits + ' exercice' + (faits > 1 ? 's' : '') + ' sur ' + r.exercices.length + ' commencé' + (faits > 1 ? 's' : '') +
@@ -303,7 +303,7 @@ const AIDE_CODE_OUBLIE = 'Le code est enregistré dans ce navigateur seulement. 
 
 function demanderCode() {
     return new Promise(fin => {
-        const v = voile('<div class="ex-haut"><h2>🔒 Espace enseignant</h2><button class="ex-x" data-f="fermer" title="Fermer">✕</button></div>' +
+        const v = voile('<div class="ex-haut"><h2>Espace enseignant</h2><button class="ex-x" data-f="fermer" title="Fermer">✕</button></div>' +
             '<label class="se-libre">Code enseignant (4 chiffres) <input id="se-code-prof" type="password" inputmode="numeric" maxlength="4" ' +
             'autocomplete="off" style="font-size:22px;letter-spacing:6px;width:6em"></label>' +
             '<p class="se-erreur" id="se-erreur" role="alert"></p>' +
@@ -344,7 +344,7 @@ async function deverrouillerEspace() {
 // Definir, changer ou supprimer le code (depuis l'Espace enseignant, donc deja deverrouille).
 function fenetreCodeProf(retour) {
     const defini = codeDefini();
-    const v = voile('<div class="ex-haut"><h2>🔒 Code enseignant</h2><button class="ex-x" data-f="fermer" title="Fermer">✕</button></div>' +
+    const v = voile('<div class="ex-haut"><h2>Code enseignant</h2><button class="ex-x" data-f="fermer" title="Fermer">✕</button></div>' +
         '<p>' + (defini ? 'Un code protège l\'Espace enseignant dans ce navigateur. Il est demandé à l\'ouverture, puis reste valable 30 minutes.'
             : 'Aucun code : l\'Espace enseignant s\'ouvre sans rien demander dans ce navigateur.') + '</p>' +
         '<div class="se-form"><label>' + (defini ? 'Nouveau code' : 'Code') + ' (4 chiffres) <input id="se-code-1" type="password" inputmode="numeric" maxlength="4" autocomplete="off"></label>' +
@@ -383,12 +383,12 @@ async function fenetreEnseignant(onglet = 'creer') {
     if (moteur().active()) { alert('Une séance d\'élève est ouverte sur ce poste : quittez-la d\'abord (Fichier > Quitter la séance).'); return; }
     if (!(await deverrouillerEspace())) return;
     const avecClasse = SUR_CE_PC && (await infoClasse()) !== null;
-    const v = voile('<div class="ex-haut"><h2>👩‍🏫 Espace enseignant</h2>' +
-        '<span class="se-haut-boutons"><button class="se-petit" data-f="code" title="Protéger l\'Espace enseignant par un code à 4 chiffres">🔒 Code…</button>' +
+    const v = voile('<div class="ex-haut"><h2>Espace enseignant</h2>' +
+        '<span class="se-haut-boutons"><button class="se-petit" data-f="code" title="Protéger l\'Espace enseignant par un code à 4 chiffres">' + window.icone('cadenas') + 'Code…</button>' +
         (codeDefini() ? '<button class="se-petit" data-f="verrouiller" title="Fermer et redemander le code à la prochaine ouverture">Verrouiller</button>' : '') +
         '<button class="ex-x" data-f="fermer" title="Fermer">✕</button></span></div>' +
         '<div class="ex-onglets"><button data-onglet="creer">Préparer une séance</button><button data-onglet="ramasser">Ramasser les travaux</button>' +
-        (avecClasse ? '<button data-onglet="classe">🏫 Mode classe</button>' : '') + '</div>' +
+        (avecClasse ? '<button data-onglet="classe">Mode classe</button>' : '') + '</div>' +
         '<div id="se-contenu"></div>', 'se-fenetre');
     let courant = onglet;
     const montrer = async o => {
@@ -451,7 +451,7 @@ async function htmlCreer() {
             (e.depart ? 'point de départ' : e.regle ? 'solution, contrôle automatique' : 'solution, correction par vous') + '</td><td>' + e.points +
             '</td><td><button class="se-petit" data-a="suppr-perso" data-i="' + i + '">Retirer</button></td></tr>').join('') + '</table>'
         : '<p class="ex-note">Aucun pour l\'instant.</p>';
-    h += '<details class="se-nouveau"><summary>✚ Ajouter un exercice à partir du programme ouvert</summary>' +
+    h += '<details class="se-nouveau"><summary>+ Ajouter un exercice à partir du programme ouvert</summary>' +
         '<div class="se-form"><label>Titre <input id="se-p-titre" type="text" maxlength="50" placeholder="Feu tricolore"></label>' +
         '<label>Points <input id="se-p-points" type="number" min="1" max="10" value="1"></label></div>' +
         '<label class="se-libre">Consigne <textarea id="se-p-consigne" rows="2" placeholder="Programme un feu tricolore : vert 3 s, orange 1 s, rouge 3 s."></textarea></label>' +
@@ -574,7 +574,7 @@ async function ajouterRendus(fichiers) {
     return ajoutes;
 }
 
-const SYMBOLES = { 'réussi': '✔', 'à corriger': '✎', 'commencé': '…', 'passé': '↷', 'échec': '✘', 'non fait': '·' };
+const SYMBOLES = { 'réussi': '✓', 'à corriger': '✎', 'commencé': '…', 'passé': '↷', 'échec': '✕', 'non fait': '·' };
 function cellule(e) {
     let t = SYMBOLES[e.statut] || '·';
     if (e.statut === 'réussi' && e.etoiles) t += ' ' + e.etoiles + '★';
@@ -609,10 +609,10 @@ function htmlRamasser() {
         }
         h += '</table></div>';
     }
-    h += '<p class="ex-note">✔ réussi (★ étoiles) · ✎ à corriger par vous · … commencé · ↷ passé · ✘ échec · · non fait. ' +
+    h += '<p class="ex-note">✓ réussi (★ étoiles) · ✎ à corriger par vous · … commencé · ↷ passé · ✕ échec · · non fait. ' +
         'Cliquez sur une case pour ouvrir le programme de l\'élève. * Note provisoire : les exercices « à corriger » comptent 0 tant que vous ne les avez pas notés.</p>';
     h += '<div class="ex-boutons ex-noprint"><button data-a="choisir">Ajouter des fichiers…</button><button data-a="csv">Exporter (CSV)</button>' +
-        '<button data-a="imprimer">🖨 Imprimer</button><button class="ex-danger" data-a="vider">Vider la liste</button></div>';
+        '<button data-a="imprimer">' + window.icone('imprimante') + 'Imprimer</button><button class="ex-danger" data-a="vider">Vider la liste</button></div>';
     return h;
 }
 
@@ -697,8 +697,8 @@ async function montrerClasse(v) {
         '<p><b>' + esc(e.seance.titre) + '</b> · ' + esc(e.seance.classe || '') + ' · ' + (e.seance.mode === 'eval' ? 'évaluation' : 'entraînement') +
         ' · travaux enregistrés dans <code>' + esc(e.dossier) + '</code></p>' +
         '<div id="se-suivi"></div>' +
-        '<div class="ex-boutons ex-noprint"><button data-a="dossier">📁 Ouvrir le dossier des travaux</button><button data-a="csv-classe">Exporter (CSV)</button>' +
-        '<button data-a="imprimer">🖨 Imprimer</button><button class="ex-danger" data-a="arreter">■ Arrêter le mode classe</button></div>';
+        '<div class="ex-boutons ex-noprint"><button data-a="dossier"><svg class="ic-menu" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></svg>Ouvrir le dossier des travaux</button><button data-a="csv-classe">Exporter (CSV)</button>' +
+        '<button data-a="imprimer">' + window.icone('imprimante') + 'Imprimer</button><button class="ex-danger" data-a="arreter">■ Arrêter le mode classe</button></div>';
     dessinerQr(e.adresses.length ? urlEleves(e.adresses[0]) : '');
     afficherSuivi(e, v);
     suiviClasse = setInterval(async () => {
@@ -714,23 +714,25 @@ function afficherSuivi(e, v) {
     if (!zone || !e.actif) return;
     const exos = e.seance.exercices;
     const enLigne = e.groupes.filter(g => g.en_ligne).length, rendus = e.groupes.filter(g => g.final).length;
-    let h = '<h3>Suivi en direct <small>' + e.groupes.length + ' groupe' + (e.groupes.length > 1 ? 's' : '') + ' · ' + enLigne + ' connecté' + (enLigne > 1 ? 's' : '') +
-        ' · ' + rendus + ' rendu' + (rendus > 1 ? 's' : '') + ' définitif' + (rendus > 1 ? 's' : '') + '</small></h3>';
+    // Compteurs traduits morceau par morceau (tr : cle exacte, pluriel choisi ici)
+    const nb = (n, un, plusieurs) => window.tr(n > 1 ? plusieurs : un, { n });
+    let h = '<h3>Suivi en direct <small>' + nb(e.groupes.length, '{n} groupe', '{n} groupes') + ' · ' + nb(enLigne, '{n} connecté', '{n} connectés') +
+        ' · ' + nb(rendus, '{n} rendu définitif', '{n} rendus définitifs') + '</small></h3>';
     if (!e.groupes.length) { zone.innerHTML = h + '<p class="ex-note">Personne n\'a encore rejoint la séance.</p>'; return; }
     h += '<div class="ex-defile"><table class="ex-table ex-classe se-table"><tr><th></th><th>Groupe</th><th>Élève(s)</th><th>En cours</th>' +
         exos.map(x => '<th title="' + esc(x.titre) + '">' + esc(x.id) + '</th>').join('') + '<th>Réussis</th>' + (e.seance.mode === 'eval' ? '<th>Note /20</th>' : '') +
         '<th>Rendu</th></tr>';
     e.groupes.forEach((g, k) => {
         const reussis = g.exercices.filter(x => x.statut === 'réussi').length;
-        h += '<tr><td title="' + (g.en_ligne ? 'connecté' : 'pas de nouvelles depuis ' + g.depuis_s + ' s') + '">' + (g.en_ligne ? '🟢' : '⚪') + '</td>' +
+        h += '<tr><td title="' + (g.en_ligne ? 'connecté' : 'pas de nouvelles depuis ' + g.depuis_s + ' s') + '"><span class="se-pastille' + (g.en_ligne ? ' se-en-ligne' : '') + '" role="img" aria-label="' + (g.en_ligne ? 'connecté' : 'hors ligne') + '"></span></td>' +
             '<td>' + esc(g.groupe) + '</td><td>' + esc(g.eleves.join(', ')) + '</td><td>' + esc(g.exercice || '—') + '</td>' +
             g.exercices.map((x, j) => '<td><button class="se-cell" data-a="voir-classe" data-g="' + k + '" data-e="' + j + '" title="Ouvrir le programme : ' +
                 esc(x.titre) + ' (' + esc(x.statut) + ')">' + esc(cellule(x)) + '</button></td>').join('') +
             '<td>' + reussis + '/' + g.exercices.length + '</td>' + (e.seance.mode === 'eval' ? '<td><b>' + (g.evaluation ? g.evaluation.note : '—') + '</b></td>' : '') +
-            '<td>' + (g.final ? '✔ ' + esc(new Date(g.rendu_le * 1000).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })) : '—') + '</td></tr>';
+            '<td>' + (g.final ? '✓ ' + esc(new Date(g.rendu_le * 1000).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })) : '—') + '</td></tr>';
     });
-    zone.innerHTML = h + '</table></div><p class="ex-note">🟢 connecté · ⚪ pas de nouvelles depuis plus de 45 s · ✔ réussi (★ étoiles) · ✎ à corriger · … commencé · ' +
-        '↷ passé · ✘ échec · · non fait. Le travail est enregistré même sans « Rendre » (envoi automatique).</p>';
+    zone.innerHTML = h + '</table></div><p class="ex-note"><span class="se-pastille se-en-ligne"></span> connecté · <span class="se-pastille"></span> pas de nouvelles depuis plus de 45 s · ✓ réussi (★ étoiles) · ✎ à corriger · … commencé · ' +
+        '↷ passé · ✕ échec · · non fait. Le travail est enregistré même sans « Rendre » (envoi automatique).</p>';
 }
 
 async function dessinerQr(texte) {
@@ -838,6 +840,8 @@ style.textContent = `
 .se-depot:hover { background: rgba(255, 85, 1, .08); }
 #ex-voile .se-cell { padding: 2px 6px; font-size: 12px; white-space: nowrap; }
 .se-table td { white-space: nowrap; }
+.se-pastille { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #9aa0a6; vertical-align: middle; }
+.se-pastille.se-en-ligne { background: #2ecc71; }
 .se-diffusion { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; margin: 10px 0; padding: 12px 16px;
   border: 2px solid #ff5501; border-radius: 10px; background: rgba(255, 85, 1, .08); }
 .se-adresse { font-family: Consolas, monospace; font-size: 24px; font-weight: 700; color: #ff7a33; margin: 2px 0 8px; }

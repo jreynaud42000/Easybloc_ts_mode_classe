@@ -7,6 +7,8 @@ Lancement : double-clic sur `lancer_projet.bat`, puis <http://localhost:8000> �
 Hébergement : dossier `site_web` (site statique, voir `PROMPT_RECREATION.md` §26)
 Fichiers ajoutés depuis la V2.0C : `bandeau.js`, `montage.js`, `exercices.js`, `exercices.json`, `ia-immediat.js`, `ia-son-immediat.js`, `seances.js`, `lib/mediapipe`, `lib/zxing`, `site_web/` (voir la section « Évolutions de la copie »)
 
+Mise à jour du 08/11/2026 : reprise de tous les travaux faits depuis le 03/11 dans TS_Easybloc (`Easybloc_ts_adacraft_minimal`, commits 3a270ed à 526b3db) par une fusion à trois voies : alignement sur EasyBloc R4, anglais, fiches d'aide (`aide/`, `aide/en/`), visites guidées, dessins des modules Grove et Hub I2C, icônes au trait, police Inter. Le mode classe est conservé (menu « En classe », code enseignant, diffusion par `classe.py`) ; ses emojis sont remplacés par des icônes au trait (pastilles « connecté » en CSS) et ses textes ont maintenant leur traduction anglaise (82 entrées). Vérifié dans le navigateur (FR et EN, serveur statique) : aucune erreur JavaScript, menu « En classe », Espace enseignant et code, mode évaluation, simulation, montage avec Hub I2C. Pas vérifié : la diffusion réelle en classe (`classe.py` et postes élèves), l'exe, une vraie carte.
+
 Ce fichier dit **où on en est** : ce qui a été vérifié, ce qui ne peut l'être
 sans matériel, et ce qui a été écarté. Les deux autres documents complètent :
 
