@@ -268,8 +268,21 @@ Le simulateur dessine un cadran par broche utilisee, dans la section
 6. CARTE D'EXTENSION BITMAKER V2
 ---------------------------------------------------------
 La BitMaker V2 (Seeed, ref 114992653) est un simple repartiteur : elle amene des
-broches de la micro:bit sur six connecteurs Grove. Aucun bloc special n'est
-necessaire, il suffit de choisir la broche correspondant au port utilise.
+broches de la micro:bit sur six connecteurs Grove. Il suffit de choisir la broche
+correspondant au port utilise.
+Categorie « Cartes d'extension » (nov. 2026) : sous-categories « Grove Shield V2.0 » et
+« BitMaker V2 ». Le bloc « carte d'extension : ... » (carte_grove_shield,
+carte_bitmaker) ne produit qu'un commentaire ; il impose la carte du montage,
+comme les blocs DFR0548 et Motor:bit (qui l'emportent), a la place du menu du
+montage. La BitMaker a aussi trois blocs pour ses 4 LED RGB : « LED n° 1 a 4 de
+la carte en couleur », « toutes les LED de la carte en couleur », « eteindre les
+LED de la carte » (bitmaker_led, bitmaker_leds, bitmaker_leds_eteindre) :
+neopixel.NeoPixel(pin13, 4), cles « leds_bitmaker » du registre ; ils imposent
+aussi la BitMaker. Simulateur : les 4 LED dans « Peripheriques » (section du
+ruban RGB) et sur la carte dessinee. Broche P13 d'apres le blog Seeed
+(« Getting Started with Bitmaker », 2019) ; NON verifie sur une vraie carte V2.
+Pas de bloc buzzer : la presence d'un buzzer sur la V2 n'est pas confirmee
+(wiki Seeed : oui, fiche RobotShop de la V2 : non).
 
 Correspondance des six ports Grove :
 
@@ -299,10 +312,8 @@ surintensites a 1,5 A.
 Deux points a savoir :
 - P13 figure dans les menus de broches de l'application mais n'est PAS sorti sur
   la BitMaker V2. Les huit autres choix correspondent bien a des ports.
-- La carte porte quatre LED RGB adressables. La broche qui les commande n'est
-  pas indiquee dans la documentation que j'ai pu consulter. Pour la trouver,
-  poser "definir le ruban RGB sur <broche> avec 4 LED" puis "colorer tout le
-  ruban", et essayer les broches candidates.
+- La carte porte quatre LED RGB adressables, sur P13 (voir les blocs
+  « BitMaker » ci-dessus) : P13 ne sort donc sur aucun port.
 
 ---------------------------------------------------------
 7. LES MODULES GROVE
@@ -633,6 +644,21 @@ courbes sont separees (prefixe "Simulateur ·" / "Carte ·"). 600 derniers point
 par courbe, echelle verticale automatique, couleurs du theme en cours (sombre,
 clair, contraste eleve), mise a jour automatique (regroupee par pas de 100 ms).
 Fonctions : extraireMesures, collecterSeries, dessinerGraphique (un.js).
+Blocs de la categorie Graphique (nov. 2026, repris de l'editeur R4 : graph_tracer, graph_point, graph_axes,
+graph_effacer, graph_arreter, graph_reprendre) : chaque bloc genere un print() d'une ligne de commande, la meme
+dans le simulateur et sur la carte (port USB) :
+  #G|P|<courbe>|<x>|<y>   point ; "tracer" prend x = running_time() / 1000 (secondes depuis le demarrage)
+  #G|A|<nom X>|<nom Y>    noms des axes (ecrits sous l'axe X et le long de l'axe Y)
+  #G|E                    effacer le graphique (les noms des axes restent)
+  #G|S  /  #G|R           arreter / reprendre la mesure (points ignores entre les deux ; pas de trait
+                          entre le dernier point avant l'arret et le premier apres la reprise)
+Ces lignes sont MASQUEES dans la console (classe console-commande, index.html). Des qu'il y en a une, l'onglet
+Graphique ne trace QUE les courbes de ces blocs (axe X choisi par le programme, sans « s ») ; sinon il trace les
+nombres de "afficher dans la console" comme avant. Le separateur "|" est remplace par "/" dans les noms saisis.
+Export Excel : seuls les points sont exportes (« Courbe 1 : X = 2 ; Y = 21 », Y dans la colonne Valeur
+numerique), sans ceux envoyes pendant un arret. Fonction : collecterCommandesGraphique (un.js). Verifie dans le
+navigateur en envoyant les lignes a la console (lecture, masquage, arret/reprise, export) ; le dessin du
+graphique et l'envoi sur une vraie carte micro:bit ne sont PAS verifies a l'ecran.
 1) SIMULATEUR : le bloc "afficher dans la console" (categorie
 Affichage, genere print(x)) ecrit dans la console, dans l'ordre du programme
 par rapport aux affichages et aux pauses (file d'actions du simulateur, voir
@@ -1223,7 +1249,8 @@ regle CSS dans index.html) ET tous les blocs de la categorie la suivent
 (Communication, Grove) heritent de leur parent.
 Palette volontairement reduite a 7 couleurs TRANCHEES (orange, bleu, or, violet,
 turquoise, rouge, magenta), sans vert, choisies pour rester distinguables en cas de
-daltonisme. Une couleur sert a plusieurs categories mais jamais a deux categories
+daltonisme. Graphique (nov. 2026) : bordeaux #8E1B3A (variante A choisie par l'utilisateur, distincte de
+Variables #A10D6E). Une couleur sert a plusieurs categories mais jamais a deux categories
 voisines de la colonne ; les quatre robots (Maqueen Plus/Lite, Kitrobot, LiDAR)
 partagent le violet. Texte blanc des blocs lisible (contraste >= 3,9). Pour changer
 une couleur : modifier la ligne de la table (constantes C_ORANGE, C_BLEU...). Les
@@ -1297,13 +1324,13 @@ memes menus, meme ordre, memes couleurs. Seul l'habillage change (index.html + b
 fonctions de ce logiciel sont conserves. Ordre, de gauche a droite :
  logo | Affichage (icone ronde : Theme Clair/Sombre, Contraste Normal/Eleve, avec ✓) | Fichier (Nouveau projet,
  Charger .hex, Charger .py, Telecharger .xml [grise], Telecharger .hex, Telecharger .py) | nom du fichier (encadre
- blanc, champ de saisie) | Defaire | Refaire | Capture | Afficher/Masquer la console | Masquer/Afficher la simulation |
- Masquer/Afficher le code | IA | selecteur de carte [grise] | Televerser | Lancer la simulation /
+ blanc, champ de saisie) | Defaire | Refaire | Capture | Console | Simulation |
+ Code | IA | selecteur de carte [grise] | Televerser | Lancer la simulation /
  Arreter | version | Aide (Visite guidee, IA, Mon premier programme [grise], clic droit, Console), tout a droite.
 Correspondances (modele -> ce logiciel) : Le "Moniteur serie" du modele est FUSIONNE dans "Console" (la console est le moniteur) : le bouton Console
-affiche / masque le panneau et porte un VOYANT de connexion de la carte (anneau vide = non connectee, disque
-vert plein = connectee ; la forme change en plus de la couleur) ; la connexion se fait avec "Connecter" dans
-l'en-tete de la console (#btn-console-carte, code existant ; le voyant suit sa classe .connecte) ; Televerser = "Envoyer sur la carte" (#btn-envoyer) ; Lancer = #run-sim, Arreter = #btn-reset ; Theme / Contraste =
+affiche / masque le panneau (depuis nov. 2026 : Capture, Console, Simulation et Code en icones seules, panneau
+ouvert = pastille claire, plus de voyant de connexion sur le bouton Console) ; la connexion se fait avec "Connecter" dans
+l'en-tete de la console (#btn-console-carte, code existant, vert quand la carte est connectee) ; Televerser = "Envoyer sur la carte" (#btn-envoyer) ; Lancer = #run-sim, Arreter = #btn-reset ; Theme / Contraste =
 boutons d'origine #btn-theme / #btn-contraste, caches dans le menu et pilotes par les nouvelles entrees ; Telecharger
 .ino = .hex et .py. Absents de ce logiciel, donc GRISES : Telecharger .xml, Mon premier programme.
 Selecteur de carte ACTIF : le menu liste les micro:bit deja autorisees (Web Serial, navigator.serial.getPorts, filtre
@@ -1341,7 +1368,9 @@ que Grove et Radio : leurs blocs, couleurs et noms sont inchanges ; verifie : le
 - "Listes" (nouvelle) : blocs de listes standards de Blockly - creer une liste (3 elements, vide), repeter, longueur, est
   vide, position de, obtenir / definir un element, sous-liste. Le code MicroPython genere (listes, len, tranches, une
   fonction first_index) a ete execute dans le simulateur (resultats justes) ; PAS verifie sur une vraie carte.
-- "Graphique" (demandee) n'existe pas : non creee, contenu a definir.
+- "Graphique" (nov. 2026, entre Listes et IA, bordeaux #8E1B3A) : les six blocs de l'editeur R4 - tracer, ajouter le
+  point X Y, nommer les axes, effacer le graphique, arreter / reprendre la mesure. Fonctionnement : voir la console (§3,
+  « Blocs de la categorie Graphique »).
 - Couleurs (§21) : Maths passe au rouge, Listes au turquoise, pour que deux categories voisines restent differentes.
 Sous-categories (Radio, Grove, Robots) : leur puce et leur texte sont decales de 14 px vers la droite par rapport aux
 categories de premier niveau (regle .blocklyToolboxCategory .blocklyToolboxCategory, index.html).
@@ -1415,7 +1444,7 @@ Bandeau du haut : fond ORANGE (clair #ff5501 = charte Technologie Services, somb
 Logo (barre d'outils et fenetre d'aide des blocs) et mention « RAJ Editions » retires de index.html ; le numero de version est affiche en derniere ligne du menu Aide (« Version V2.0E »). logo.png n'est plus utilise par la page (il reste dans app.spec, sans effet). Les proprietes du fichier .exe (version_info.txt, CompanyName) gardent « RAJ Editions » : a changer separement si besoin.
 
 31. EXERCICES PAS A PAS ET MODE EVALUATION (copie d'essai)
-Fichiers : exercices.js (moteur, charge apres bandeau.js) et exercices.json (les 16 exercices en 5 niveaux, modifiable a la main : voir le champ « aide_enseignant »).
+Fichiers : exercices.js (moteur, charge apres bandeau.js) et exercices.json (44 exercices en 8 niveaux depuis nov. 2026 : premiers pas, temps, boutons, decider, capteurs, Grove, cartes d'extension, aller plus loin ; modifiable a la main : voir le champ « aide_enseignant »).
 Entrees : menu Aide > « Exercices pas a pas » et « Mode evaluation ». Entrainement : panneau « Mission » deplacable, 3 indices progressifs, solution, validation AUTOMATIQUE
 (les blocs sont lus, rien n'est execute), 1 a 3 etoiles (3 = sans indice), exercice suivant verrouille tant que le precedent n'est pas fait ou passe (case « Acces libre »
 pour tout deverrouiller). Evaluation : sans indice ni solution, bouton Valider, 3 essais (100 % / 75 % / 50 % des points), duree maximale facultative, note sur 20,
@@ -1480,7 +1509,7 @@ masque (display: none), pas supprime, car c'est lui que le bandeau clique (bande
 Restent sous la carte : « Secouer la carte » et « Reinitialiser la simulation ». Les visites guidees visent le bouton vert.
 
 36. DISPOSITION AU LANCEMENT (oct. 2026)
-L'application s'ouvre avec : simulation affichee, code MicroPython MASQUE (bouton « Afficher le code »), console et IA
+L'application s'ouvre avec : simulation affichee, code MicroPython MASQUE (bouton « Code »), console et IA
 masquees. Code masque, le simulateur occupe 37 % de la largeur (au lieu de 24 %) : les boutons « Secouer la carte » et
 « Reinitialiser la simulation » se placent a droite de la carte, et la poignee de redimensionnement est active d'emblee.
 Reglage : classes inactif / replie dans index.html (#btn-vue-code, #code-container), regle CSS
@@ -1513,6 +1542,22 @@ Grove du simulateur et reconstruction en blocs a l'import d'un .py :
   voyant rouge), un clic ou Entree simule un mouvement ; la case « mouvement detecte » reste dessous.
 - Buzzer (actif, numerique) : marche / arret, et « bip pendant ... ms ». Simulateur : pastille orange qui vibre et bip
   de 2,3 kHz a faible volume ; le buzzer se tait a l'arret de la simulation.
+- Lecteur MP3 v3.0 (nov. 2026, sous-categorie « Lecteur MP3 » ; puce WT2003S, liaison serie 9600 bauds) : jouer la
+  piste n°, Lecture / Pause, Stop, Suivant, Precedent, Volume + / -, regler le volume (0 a 31), mode de lecture (une
+  fois, repeter la piste, tout repeter, aleatoire). Fichiers MP3 a la RACINE de la carte microSD (FAT16/FAT32), numerotes
+  dans l'ordre de copie. Trames de la bibliotheque Seeed (Seeed_Serial_MP3_Player) : 7E, longueur (octets + 2), commande
+  et parametres, somme (longueur + octets, sur 8 bits), EF ; codes A2 (piste), AA, AB, AC, AD, AE (volume), AF (mode).
+  Port Grove : fil jaune = TX du module (rx de la carte), fil blanc = RX du module ; « P1 / P15 » donne
+  uart.init(9600, tx=pin15, rx=pin1). La micro:bit n'a qu'un uart, partage avec l'USB : il est prete au module le temps
+  d'une trame (15 ms) puis rendu a l'USB (uart.init(115200)) ; reponses du module ignorees (etat et volume non lus),
+  100 ms au moins entre deux ordres. Volume + / - partent de 20 tant qu'aucun volume n'a ete regle. Simulateur : les
+  pistes 1 a 6 sont six courtes melodies libres de droits (musiques-mp3.js : Au clair de la lune, Frere Jacques, Ode a
+  la joie, Ah ! vous dirai-je maman, Vive le vent, Fanfare EasyBloc ecrite pour le logiciel), jouees par le navigateur
+  (Web Audio, un.js : jouerPisteMp3) avec pause, reprise, volume et les quatre modes ; Suivant / Precedent tournent en
+  boucle sur ces six pistes ; une piste au-dela de 6 est « absente ». Etat dans « Peripheriques » (piste et titre,
+  lecture / pause / arret, volume, mode) ; montage : module dessine (40 x 20 mm,
+  prise Grove a gauche, prise casque, connecteur haut-parleur). Trames verifiees en executant le pilote avec un faux uart ;
+  NON verifie sur une vraie carte avec le module.
 - Relais (numerique) : ferme (marche) / ouvert (arret). Simulateur : un module Grove dessine par broche (boitier
   RELAY bleu, bornier vert), voyant rouge allume quand le contact est ferme.
 - Ecran OLED 0,96" 128 x 64 (I2C 0x3C, SSD1315 / SSD1306) : initialiser, afficher un texte en colonne (0 a 20) et ligne

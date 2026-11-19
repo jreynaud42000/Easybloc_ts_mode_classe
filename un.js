@@ -211,6 +211,76 @@ try {
         return 'print(' + (P.valueToCode(block, 'VALEUR', P.ORDER_NONE) || '""') + ')\n';
     };
 
+    // ---------- Graphique (blocs de l'editeur R4, nov. 2026) ----------
+    // Chaque bloc ecrit une ligne de commande dans la console (print : port USB sur la carte, console du simulateur),
+    // lue par l'onglet Graphique et masquee dans la console :
+    //     #G|P|<courbe>|<x>|<y>   point (« tracer » : x = secondes depuis le demarrage de la carte)
+    //     #G|A|<nom X>|<nom Y>    noms des axes
+    //     #G|E                    effacer le graphique
+    //     #G|S  /  #G|R           arreter / reprendre la mesure (points ignores entre les deux)
+    // Le separateur « | » est retire des noms saisis par l'eleve.
+    const nomGraphique = (block, champ, defaut) =>
+        String(block.getFieldValue(champ) || defaut).replace(/\|/g, '/').replace(/[\r\n]+/g, ' ').trim() || defaut;
+
+    Blockly.Blocks['graph_tracer'] = { init: function() {
+        this.appendValueInput("VAL").setCheck("Number").appendField("tracer");
+        this.appendDummyInput().appendField("dans la courbe").appendField(new Blockly.FieldTextInput("Courbe 1"), "COURBE");
+        this.setInputsInline(true);
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setTooltip("Ajoute un point au graphique : la valeur en hauteur (Y) et, en largeur (X), le temps écoulé " +
+                        "depuis le démarrage de la carte, en secondes. Donnez un nom différent à chaque courbe.");
+    }};
+    P.forBlock['graph_tracer'] = function(block) {
+        importerMicrobit();
+        const v = P.valueToCode(block, 'VAL', P.ORDER_NONE) || '0';
+        return 'print(' + P.quote_('#G|P|' + nomGraphique(block, 'COURBE', 'Courbe 1') + '|') + ' + str(running_time() / 1000) + \'|\' + str(' + v + '))\n';
+    };
+
+    Blockly.Blocks['graph_point'] = { init: function() {
+        this.appendValueInput("X").setCheck("Number").appendField("ajouter le point X");
+        this.appendValueInput("Y").setCheck("Number").appendField("Y");
+        this.appendDummyInput().appendField("à la courbe").appendField(new Blockly.FieldTextInput("Courbe 1"), "COURBE");
+        this.setInputsInline(true);
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setTooltip("Ajoute un point dont vous choisissez les deux valeurs : par exemple la distance (Y) en " +
+                        "fonction de l'angle (X). Donnez un nom différent à chaque courbe.");
+    }};
+    P.forBlock['graph_point'] = function(block) {
+        importerMicrobit();
+        const x = P.valueToCode(block, 'X', P.ORDER_NONE) || '0';
+        const y = P.valueToCode(block, 'Y', P.ORDER_NONE) || '0';
+        return 'print(' + P.quote_('#G|P|' + nomGraphique(block, 'COURBE', 'Courbe 1') + '|') + ' + str(' + x + ') + \'|\' + str(' + y + '))\n';
+    };
+
+    Blockly.Blocks['graph_axes'] = { init: function() {
+        this.appendDummyInput().appendField("nommer les axes : X")
+            .appendField(new Blockly.FieldTextInput("Temps (s)"), "NOM_X")
+            .appendField("Y").appendField(new Blockly.FieldTextInput("Température (°C)"), "NOM_Y");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setTooltip("Écrit le nom (et l'unité) de chaque axe du graphique. À placer une fois, dans « au démarrage ».");
+    }};
+    P.forBlock['graph_axes'] = function(block) {
+        return 'print(' + P.quote_('#G|A|' + nomGraphique(block, 'NOM_X', 'X') + '|' + nomGraphique(block, 'NOM_Y', 'Y')) + ')\n';
+    };
+
+    [['graph_effacer', "effacer le graphique", 'E', "Efface toutes les courbes et toutes les mesures du graphique."],
+     ['graph_arreter', "arrêter la mesure", 'S', "Arrête la mesure : les blocs « tracer » et « ajouter le point » ne " +
+         "tracent plus rien. Le graphique reste affiché : vous pouvez l'analyser ou exporter les mesures. Le reste du " +
+         "programme continue."],
+     ['graph_reprendre', "reprendre la mesure", 'R', "Fait repartir une mesure arrêtée : les points sont de nouveau " +
+         "tracés, à la suite des courbes (sans trait pendant la pause)."]].forEach(([type, texte, code, aide]) => {
+        Blockly.Blocks[type] = { init: function() {
+            this.appendDummyInput().appendField(texte);
+            this.setPreviousStatement(true, null);
+            this.setNextStatement(true, null);
+            this.setTooltip(aide);
+        }};
+        P.forBlock[type] = () => 'print(' + P.quote_('#G|' + code) + ')\n';
+    });
+
     // ---------- IA : vision et son (Teachable Machine) ----------
     //
     // La reconnaissance tourne dans le NAVIGATEUR (camera / micro, panneau IA,
@@ -1542,6 +1612,65 @@ try {
         return m === 'tous' ? '_motorbit().arreter_tout()\n' : '_motorbit().arreter(' + m + ')\n';
     };
 
+    // ---------- Grove Shield V2.0 et BitMaker V2 (nov. 2026) ----------
+    // Bloc « carte d'extension : … » : dit au montage quelle carte dessiner (montage.js, cartesImposees), comme les blocs
+    // de la DFR0548 ; il ne produit qu'un commentaire, ces cartes ne font que relier les broches aux prises Grove.
+    // BitMaker V2 : 4 LED RGB soudees, pilotees par P13 (WS2812 : module neopixel), numerotees 1 a 4 pour l'eleve.
+    [['carte_grove_shield', 'Grove Shield V2.0', "Indique que le programme utilise la carte d'extension Grove Shield V2.0 " +
+         "(Seeed) : le montage la dessine. Ce bloc ne produit aucun code pour la carte."],
+     ['carte_bitmaker', 'BitMaker V2', "Indique que le programme utilise la carte d'extension BitMaker V2 (Seeed) : le " +
+         "montage la dessine. Ce bloc ne produit aucun code pour la carte."]].forEach(([type, nom, aide]) => {
+        Blockly.Blocks[type] = { init: function() {
+            this.appendDummyInput().appendField("carte d'extension :").appendField(nom);
+            this.setPreviousStatement(true, null);
+            this.setNextStatement(true, null);
+            this.setTooltip(aide);
+        }};
+        P.forBlock[type] = () => '# Carte d\'extension : ' + nom + '\n';
+    });
+
+    function piloteLedsBitmaker() {
+        piloteRuban();
+        pilote('leds_bitmaker', [
+            '# BitMaker V2 : 4 LED RGB soudees sur la carte, pilotees par P13.',
+            'def _bitmaker_leds():',
+            '    return _grove_obj("leds_bitmaker", lambda: neopixel.NeoPixel(pin13, 4))',
+        ]);
+    }
+    Blockly.Blocks['bitmaker_led'] = { init: function() {
+        this.appendDummyInput().appendField("BitMaker : LED n°")
+            .appendField(new Blockly.FieldDropdown([["1", "0"], ["2", "1"], ["3", "2"], ["4", "3"]]), "LED")
+            .appendField("de la carte en").appendField(menuCouleur(), "COULEUR");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setTooltip("Allume une des 4 LED RGB soudées sur la carte BitMaker V2 dans la couleur choisie (noir : éteinte).");
+    }};
+    P.forBlock['bitmaker_led'] = function(block) {
+        piloteLedsBitmaker();
+        return '_bitmaker_leds()[' + block.getFieldValue('LED') + '] = _grove_teinte(' + block.getFieldValue('COULEUR') + ')\n' +
+               '_bitmaker_leds().show()\n';
+    };
+    Blockly.Blocks['bitmaker_leds'] = { init: function() {
+        this.appendDummyInput().appendField("BitMaker : toutes les LED de la carte en").appendField(menuCouleur(), "COULEUR");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setTooltip("Allume les 4 LED RGB de la carte BitMaker V2 dans la même couleur.");
+    }};
+    P.forBlock['bitmaker_leds'] = function(block) {
+        piloteLedsBitmaker();
+        return '_bitmaker_leds().fill(_grove_teinte(' + block.getFieldValue('COULEUR') + '))\n_bitmaker_leds().show()\n';
+    };
+    Blockly.Blocks['bitmaker_leds_eteindre'] = { init: function() {
+        this.appendDummyInput().appendField("BitMaker : éteindre les LED de la carte");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setTooltip("Éteint les 4 LED RGB de la carte BitMaker V2.");
+    }};
+    P.forBlock['bitmaker_leds_eteindre'] = function(block) {
+        piloteLedsBitmaker();
+        return '_bitmaker_leds().clear()\n';
+    };
+
     Blockly.Blocks['dfr_servo'] = { init: function() {
         this.appendDummyInput().appendField("DFR0548 : servo").appendField(new Blockly.FieldDropdown(MENU_SERVOS_DFR), "SERVO")
             .appendField("à");
@@ -2306,6 +2435,116 @@ try {
         piloteBuzzer();
         return '_grove_buzzer_bip(' + block.getFieldValue('BROCHE') + ', ' +
                (P.valueToCode(block, 'DUREE', P.ORDER_NONE) || '200') + ')\n';
+    };
+
+    // --- Lecteur MP3 Grove v3.0 (puce WT2003S, liaison serie 9600 bauds ; nov. 2026) ---
+    //
+    // Trames de la bibliotheque Seeed (Seeed_Serial_MP3_Player, WT2003S_Player.cpp) :
+    //     7E <longueur> <commande> <parametres...> <somme> EF
+    // longueur = nombre d'octets de commande et de parametres + 2 ; somme = longueur + ces octets, sur 8 bits.
+    // La micro:bit n'a qu'un uart, relie aussi a l'USB (console, graphique, IA) : il est envoye vers le module le temps
+    // d'une trame, puis rendu a l'USB. Les reponses du module sont donc ignorees (etat et volume non lus). 100 ms au
+    // moins entre deux ordres, comme la bibliotheque. Port Grove : fil jaune (1re broche) = TX du module, fil blanc
+    // (2e broche) = RX du module ; la carte emet donc sur la 2e broche.
+    function piloteMp3() {
+        importerMicrobit();
+        pilote('mp3', [
+            '_mp3_vol = 20',
+            '_mp3_temps = -1000',
+            '',
+            'def _mp3_envoyer(rx, tx, octets):',
+            '    global _mp3_temps',
+            '    attente = 100 - (running_time() - _mp3_temps)',
+            '    if attente > 0:',
+            '        sleep(attente)',
+            '    n = len(octets) + 2',
+            '    trame = bytes([0x7E, n] + octets + [(n + sum(octets)) & 0xFF, 0xEF])',
+            '    uart.init(9600, tx=tx, rx=rx)',
+            '    uart.write(trame)',
+            '    sleep(15)',
+            '    uart.init(115200)',
+            '    _mp3_temps = running_time()',
+            '',
+            'def _mp3_volume(rx, tx, v):',
+            '    global _mp3_vol',
+            '    _mp3_vol = max(0, min(31, int(v)))',
+            '    _mp3_envoyer(rx, tx, [0xAE, _mp3_vol])',
+            '',
+            'def _mp3_ordre(rx, tx, ordre):',
+            '    if ordre == "volume+":',
+            '        _mp3_volume(rx, tx, _mp3_vol + 2)',
+            '    elif ordre == "volume-":',
+            '        _mp3_volume(rx, tx, _mp3_vol - 2)',
+            '    else:',
+            '        _mp3_envoyer(rx, tx, [{"lecture_pause": 0xAA, "stop": 0xAB, "suivant": 0xAC, "precedent": 0xAD}[ordre]])',
+            '',
+            'def _mp3_piste(rx, tx, n):',
+            '    n = max(1, int(n))',
+            '    _mp3_envoyer(rx, tx, [0xA2, (n >> 8) & 0xFF, n & 0xFF])',
+            '',
+            'def _mp3_mode(rx, tx, mode):',
+            '    _mp3_envoyer(rx, tx, [0xAF, int(mode)])',
+        ]);
+    }
+    const debutMp3 = (bloc, texte) => bloc.appendField("lecteur MP3 sur")
+        .appendField(new Blockly.FieldDropdown(PORTS_GROVE), "PORT").appendField(texte);
+    const portMp3 = block => block.getFieldValue('PORT');   // « pin0, pin14 » : rx (fil jaune), tx (fil blanc)
+
+    Blockly.Blocks['grove_mp3_ordre'] = { init: function() {
+        debutMp3(this.appendDummyInput(), ":").appendField(new Blockly.FieldDropdown([
+            ["Lecture / Pause", "lecture_pause"], ["Stop", "stop"], ["Suivant", "suivant"], ["Précédent", "precedent"],
+            ["Volume +", "volume+"], ["Volume −", "volume-"]]), "ORDRE");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(COULEUR_GROVE);
+        this.setTooltip("Commande le lecteur MP3 Grove (v3.0) : « Lecture / Pause » met en pause ou relance, « Stop » " +
+                        "arrête, « Suivant » et « Précédent » changent de piste, « Volume + » et « Volume − » changent le volume.");
+    }};
+    P.forBlock['grove_mp3_ordre'] = function(block) {
+        piloteMp3();
+        return '_mp3_ordre(' + portMp3(block) + ', "' + block.getFieldValue('ORDRE') + '")\n';
+    };
+
+    Blockly.Blocks['grove_mp3_piste'] = { init: function() {
+        debutMp3(this.appendValueInput("PISTE").setCheck("Number"), ": jouer la piste n°");
+        this.setInputsInline(true);
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(COULEUR_GROVE);
+        this.setTooltip("Joue la piste choisie de la carte microSD : 1 pour le premier fichier MP3 copié à la racine " +
+                        "de la carte, 2 pour le deuxième, etc.");
+    }};
+    P.forBlock['grove_mp3_piste'] = function(block) {
+        piloteMp3();
+        return '_mp3_piste(' + portMp3(block) + ', ' + (P.valueToCode(block, 'PISTE', P.ORDER_NONE) || '1') + ')\n';
+    };
+
+    Blockly.Blocks['grove_mp3_volume'] = { init: function() {
+        debutMp3(this.appendValueInput("VOLUME").setCheck("Number"), ": régler le volume à");
+        this.appendDummyInput().appendField("(0 à 31)");
+        this.setInputsInline(true);
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(COULEUR_GROVE);
+        this.setTooltip("Règle le volume du lecteur MP3, de 0 (muet) à 31 (le plus fort).");
+    }};
+    P.forBlock['grove_mp3_volume'] = function(block) {
+        piloteMp3();
+        return '_mp3_volume(' + portMp3(block) + ', ' + (P.valueToCode(block, 'VOLUME', P.ORDER_NONE) || '20') + ')\n';
+    };
+
+    Blockly.Blocks['grove_mp3_mode'] = { init: function() {
+        debutMp3(this.appendDummyInput(), ": mode de lecture").appendField(new Blockly.FieldDropdown([
+            ["une fois", "0"], ["répéter la piste", "1"], ["tout répéter", "2"], ["aléatoire", "3"]]), "MODE");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(COULEUR_GROVE);
+        this.setTooltip("Choisit ce que fait le lecteur MP3 à la fin d'une piste : s'arrêter (une fois), rejouer la " +
+                        "même piste, jouer toutes les pistes en boucle, ou les jouer au hasard.");
+    }};
+    P.forBlock['grove_mp3_mode'] = function(block) {
+        piloteMp3();
+        return '_mp3_mode(' + portMp3(block) + ', ' + block.getFieldValue('MODE') + ')\n';
     };
 
     // --- Relais (Grove Relay : contact ferme tant que la broche est au niveau haut) ---
@@ -5501,6 +5740,8 @@ try {
         'Cartes d\'extension': '#5C5C1E',
         'DFR0548': '#5C5C1E',
         'Motor:bit': '#5C5C1E',
+        'Grove Shield V2.0': '#5C5C1E',
+        'BitMaker V2': '#5C5C1E',
         'Radio': '#336C93',
         'IA': '#607610',
         'Grove': '#356D48',
@@ -5510,6 +5751,7 @@ try {
         'Texte': '#6D4415',
         'Fonctions': '#5F2BD4',
         'Listes': '#88009B',
+        'Graphique': '#8E1B3A',   // bordeaux, variante A choisie par l'utilisateur (nov. 2026)
         'Robots': '#6E3B8E',
     };
     // Texte des blocs : blanc par defaut ; fonce sur les couleurs claires, ou le blanc contraste a moins de 3:1 (seuil
@@ -5539,9 +5781,12 @@ try {
     // ---------- Ordre des categories ----------
     // Ordre voulu par l'utilisateur (la table sert aussi d'ordre « par defaut » du panneau administrateur, qui part de
     // TOOLBOX_ORIGINAL). Les categories qui n'y figurent pas (robots, LiDAR) restent
-    // a la suite, dans leur ordre d'origine. « Communication » est renommee « Radio ». « Graphique » n'existe pas encore.
-    const ORDRE_CATEGORIES = ['Boucles', 'Temps', 'Matrice LED', 'Entrées/Sorties', 'Capteurs', 'Actionneurs (Audio)', 'Servos', 'Cartes d\'extension', 'Radio', 'IA', 'Grove',
-                              'Logique', 'Variables', 'Maths', 'Texte', 'Fonctions', 'Listes'];
+    // a la suite, dans leur ordre d'origine. « Communication » est renommee « Radio ».
+    // Graphique puis IA apres Listes ; Logique juste apres Boucles ; Radio entre Actionneurs (Audio) et
+    // Servos (demandes de l'utilisateur, nov. 2026).
+    // Robots reste en toute derniere position, apres IA (regroupement fait dans reordonnerToolbox).
+    const ORDRE_CATEGORIES = ['Boucles', 'Logique', 'Temps', 'Matrice LED', 'Entrées/Sorties', 'Capteurs', 'Actionneurs (Audio)', 'Radio', 'Servos', 'Cartes d\'extension', 'Grove',
+                              'Variables', 'Maths', 'Texte', 'Fonctions', 'Listes', 'Graphique', 'IA'];
     const NOMS_ROBOTS = ['Maqueen Plus', 'Maqueen Lite', 'Kitrobot v2', 'LiDAR'];   // regroupes dans « Robots »
     const CATEGORIE_LISTES = {
         "kind": "category", "name": "Listes", "colour": "260",
@@ -5905,6 +6150,20 @@ try {
             ]
           },
           {
+            // Blocs de l'editeur R4 (nov. 2026) : courbes de l'onglet Graphique de la console
+            "kind": "category", "name": "Graphique", "colour": "330",
+            "contents": [
+              { "kind": "label", "text": "Tracer", "web-class": "groupe-flyout" },
+              { "kind": "block", "type": "graph_tracer", "inputs": { "VAL": { "shadow": { "type": "math_number", "fields": { "NUM": "0" } } } } },
+              { "kind": "block", "type": "graph_point", "inputs": { "X": { "shadow": { "type": "math_number", "fields": { "NUM": "0" } } }, "Y": { "shadow": { "type": "math_number", "fields": { "NUM": "0" } } } } },
+              { "kind": "block", "type": "graph_axes" },
+              { "kind": "label", "text": "Gérer le graphique", "web-class": "groupe-flyout" },
+              { "kind": "block", "type": "graph_effacer" },
+              { "kind": "block", "type": "graph_arreter" },
+              { "kind": "block", "type": "graph_reprendre" }
+            ]
+          },
+          {
             "kind": "category", "name": "IA", "colour": "330",
             "contents": [
               { "kind": "label", "text": "Résultat envoyé par le panneau IA", "web-class": "groupe-flyout" },
@@ -5948,6 +6207,23 @@ try {
               { "kind": "block", "type": "dfr_moteur_arreter" },
               { "kind": "label", "text": "Moteurs pas à pas", "web-class": "groupe-flyout" },
               { "kind": "block", "type": "dfr_pas_a_pas", "inputs": { "QUANTITE": { "shadow": { "type": "math_number", "fields": { "NUM": "90" } } } } }
+            ]
+            },
+            {
+            // Cartes a prises Grove (nov. 2026) : le bloc « carte d'extension » choisit la carte du montage
+            "kind": "category", "name": "Grove Shield V2.0", "colour": "190",
+            "contents": [
+              { "kind": "block", "type": "carte_grove_shield" }
+            ]
+            },
+            {
+            "kind": "category", "name": "BitMaker V2", "colour": "190",
+            "contents": [
+              { "kind": "block", "type": "carte_bitmaker" },
+              { "kind": "label", "text": "LED RGB de la carte (P13)", "web-class": "groupe-flyout" },
+              { "kind": "block", "type": "bitmaker_led", "fields": { "LED": "0", "COULEUR": "0xFF0000" } },
+              { "kind": "block", "type": "bitmaker_leds", "fields": { "COULEUR": "0x00FF00" } },
+              { "kind": "block", "type": "bitmaker_leds_eteindre" }
             ]
             },
             {
@@ -6104,6 +6380,16 @@ try {
             "contents": [
               { "kind": "block", "type": "grove_buzzer_etat" },
               { "kind": "block", "type": "grove_buzzer_bip", "inputs": { "DUREE": { "shadow": { "type": "math_number", "fields": { "NUM": "200" } } } } }
+              ]
+            },
+            {
+            // Lecteur MP3 Grove v3.0 (nov. 2026, variante « quatre blocs » choisie par l'utilisateur)
+            "kind": "category", "name": "Lecteur MP3", "colour": String(COULEUR_GROVE),
+            "contents": [
+              { "kind": "block", "type": "grove_mp3_piste", "inputs": { "PISTE": { "shadow": { "type": "math_number", "fields": { "NUM": "1" } } } } },
+              { "kind": "block", "type": "grove_mp3_ordre" },
+              { "kind": "block", "type": "grove_mp3_volume", "inputs": { "VOLUME": { "shadow": { "type": "math_number", "fields": { "NUM": "20" } } } } },
+              { "kind": "block", "type": "grove_mp3_mode" }
               ]
             },
             {
@@ -7673,7 +7959,10 @@ try {
             if (i > 0) ligneConsoleCourante[source] = null;            // saut de ligne : on ferme la ligne en cours
             if (morceau === '' && i === morceaux.length - 1) return;   // rien apres le dernier saut de ligne
             if (!ligneConsoleCourante[source]) ligneConsoleCourante[source] = nouvelleLigneConsole(source);
-            ligneConsoleCourante[source].textContent += morceau;
+            const ligne = ligneConsoleCourante[source];
+            ligne.textContent += morceau;
+            // Commandes des blocs Graphique (#G|...) : lues par le graphique, masquees dans la console (CSS).
+            ligne.classList.toggle('console-commande', ligne.textContent.startsWith('#G|'));
         });
         // On ne force le defilement que si l'utilisateur etait deja en bas.
         if (enBas) consoleSortie.scrollTop = consoleSortie.scrollHeight;
@@ -7772,13 +8061,62 @@ try {
     /** Lignes actuellement affichees dans la console, avec heure, source et valeur numerique eventuelle. */
     function lignesPourExport() {
         if (!consoleSortie) return [];
-        return Array.from(consoleSortie.querySelectorAll('.console-ligne')).map((l, i) => {
-            const texte = l.textContent;
-            const nombre = texte.trim() !== '' && Number.isFinite(Number(texte.trim().replace(',', '.')))
-                ? Number(texte.trim().replace(',', '.')) : null;
+        // Commandes des blocs Graphique : seuls les points sont exportes, en clair (« Courbe 1 : X = 2 ; Y = 21 »).
+        // Points envoyes entre « arreter la mesure » et « reprendre la mesure » : ignores, comme dans le graphique.
+        const arrete = {};
+        const lignes = Array.from(consoleSortie.querySelectorAll('.console-ligne')).filter(l => {
+            if (!l.classList.contains('console-commande')) return true;
+            const code = l.textContent.split('|')[1];
+            if (code === 'S') arrete[l.dataset.src] = true;
+            if (code === 'R') arrete[l.dataset.src] = false;
+            return code === 'P' && !arrete[l.dataset.src];
+        });
+        return lignes.map((l, i) => {
+            let texte = l.textContent, nombre = null;
+            if (l.classList.contains('console-commande')) {
+                const [, , courbe, x, y] = texte.split('|');
+                texte = courbe + ' : X = ' + x + ' ; Y = ' + y;
+                nombre = Number.isFinite(Number(y)) ? Number(y) : null;
+            } else if (texte.trim() !== '' && Number.isFinite(Number(texte.trim().replace(',', '.')))) {
+                nombre = Number(texte.trim().replace(',', '.'));
+            }
             return { n: i + 1, heure: heureLisible(Number(l.dataset.t) || Date.now()),
                      source: NOMS_SOURCES[l.dataset.src] || l.dataset.src, texte, nombre };
         });
+    }
+
+    /** Classeur Excel d'une feuille : titres en premiere ligne, puis les lignes (nombres ou textes). */
+    function creerXlsxTableau(nomFeuille, titres, lignes, largeurs) {
+        const texteCell = t => '<c t="inlineStr"><is><t xml:space="preserve">' + echapperXml(t) + '</t></is></c>';
+        const cellule = v => v === null || v === undefined || v === '' ? '<c/>' :
+            (typeof v === 'number' && Number.isFinite(v) ? '<c><v>' + v + '</v></c>' : texteCell(String(v)));
+        const xml = ['<row r="1">' + titres.map(texteCell).join('') + '</row>'].concat(
+            lignes.map((l, i) => '<row r="' + (i + 2) + '">' + l.map(cellule).join('') + '</row>'));
+        const enTete = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n';
+        const ns = 'xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"';
+        const cols = (largeurs || []).map((w, i) => '<col min="' + (i + 1) + '" max="' + (i + 1) + '" width="' + w + '" customWidth="1"/>').join('');
+        return creerZip([
+            { nom: '[Content_Types].xml', contenu: enTete +
+              '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">' +
+              '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>' +
+              '<Default Extension="xml" ContentType="application/xml"/>' +
+              '<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>' +
+              '<Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>' +
+              '</Types>' },
+            { nom: '_rels/.rels', contenu: enTete +
+              '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
+              '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>' +
+              '</Relationships>' },
+            { nom: 'xl/workbook.xml', contenu: enTete + '<workbook ' + ns +
+              ' xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">' +
+              '<sheets><sheet name="' + echapperXml(nomFeuille) + '" sheetId="1" r:id="rId1"/></sheets></workbook>' },
+            { nom: 'xl/_rels/workbook.xml.rels', contenu: enTete +
+              '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
+              '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>' +
+              '</Relationships>' },
+            { nom: 'xl/worksheets/sheet1.xml', contenu: enTete + '<worksheet ' + ns + '>' + (cols ? '<cols>' + cols + '</cols>' : '') +
+              '<sheetData>' + xml.join('') + '</sheetData></worksheet>' },
+        ]);
     }
 
     function creerXlsxConsole(lignes) {
@@ -7869,12 +8207,51 @@ try {
         return paires;
     }
 
+    /** Blocs Graphique : series tirees des commandes #G| (voir graph_tracer), ou null s'il n'y en a aucune. Les
+        points gardent leur X (pas de remise a zero) ; « effacer » oublie tout ce qui precede ; entre « arreter » et
+        « reprendre », les points sont ignores, et le premier point apres la reprise n'est pas relie au precedent. */
+    // « Effacer » de l'onglet Graphique : les lignes recues avant cet instant ne sont plus tracees (la console les garde).
+    let debutGraphique = 0;
+    const avantEffacement = l => (Number(l.dataset.t) || 0) < debutGraphique;
+    function collecterCommandesGraphique() {
+        const commandes = Array.from(consoleSortie.querySelectorAll('.console-ligne.console-commande'));
+        if (!commandes.length) return null;
+        const sources = new Set(commandes.map(l => l.dataset.src));
+        const parCle = new Map(), arrete = {}, saut = {};
+        let axes = null;
+        commandes.forEach(l => {
+            const champs = l.textContent.split('|'), src = l.dataset.src;
+            if (avantEffacement(l) && champs[1] !== 'A') return;
+            switch (champs[1]) {
+                case 'E': parCle.clear(); break;   // les noms des axes restent
+                case 'A': axes = { x: champs[2] || '', y: champs[3] || '' }; break;
+                case 'S': arrete[src] = true; break;
+                case 'R': if (arrete[src]) { arrete[src] = false; saut[src] = true; } break;
+                case 'P': {
+                    const x = Number(champs[3]), y = Number(champs[4]);
+                    if (arrete[src] || !Number.isFinite(x) || !Number.isFinite(y)) break;
+                    const nom = champs[2] || 'Courbe 1';
+                    const cle = sources.size > 1 ? (NOMS_SOURCES[src] || src) + ' · ' + nom : nom;
+                    if (!parCle.has(cle)) parCle.set(cle, { nom: cle, points: [] });
+                    parCle.get(cle).points.push({ t: x, v: y, saut: !!saut[src] });
+                    break;
+                }
+            }
+            if (champs[1] === 'P' && !arrete[src]) saut[src] = false;
+        });
+        const series = Array.from(parCle.values()).map(s => {
+            if (s.points.length > MAX_POINTS_COURBE) s.points = s.points.slice(-MAX_POINTS_COURBE);
+            return s;
+        });
+        return { series, axes };
+    }
+
     /** Series { nom, points: [{t, v}] } tirees des lignes de la console, t en secondes depuis la premiere mesure. */
     function collecterSeries() {
         if (!consoleSortie) return [];
         const mesures = [];
         consoleSortie.querySelectorAll('.console-ligne').forEach(l => {
-            if (l.dataset.src === 'info') return;
+            if (l.dataset.src === 'info' || l.classList.contains('console-commande') || avantEffacement(l)) return;
             const t = Number(l.dataset.t) || 0;
             extraireMesures(l.textContent).forEach(([nom, v]) => {
                 if (Number.isFinite(v)) mesures.push({ t, v, nom, source: l.dataset.src });
@@ -7922,6 +8299,25 @@ try {
         minuterieGraphique = setTimeout(() => { minuterieGraphique = null; dessinerGraphique(); }, 100);
     }
 
+    const choixFenetre = document.getElementById('graph-fenetre');
+    const graphVide = document.getElementById('graph-vide');
+    const graphEtat = document.getElementById('graph-etat');
+    const boutonsExportGraphique = ['btn-graph-image', 'btn-graph-csv', 'btn-graph-excel'].map(id => document.getElementById(id));
+    /** Ce que montre le graphique : series des blocs Graphique (sinon nombres de la console), limitees a la fenetre choisie
+        dans « Afficher » (les N dernieres secondes de la mesure). Sert au dessin et aux exports. */
+    function donneesGraphique() {
+        const commandes = collecterCommandesGraphique();
+        let series = commandes ? commandes.series : collecterSeries();
+        const fenetre = Number(choixFenetre ? choixFenetre.value : 0) || 0;
+        if (fenetre > 0 && series.length) {
+            const fin = Math.max(...series.map(s => s.points[s.points.length - 1].t));
+            series = series.map(s => ({ nom: s.nom, points: s.points.filter(p => p.t >= fin - fenetre) })).filter(s => s.points.length);
+        }
+        return { commandes: !!commandes, series, axes: commandes && commandes.axes };
+    }
+    function etatGraphique(texte) { if (graphEtat) graphEtat.textContent = texte || ''; }
+    if (choixFenetre) choixFenetre.addEventListener('change', () => dessinerGraphique());
+
     function dessinerGraphique() {
         if (!graphiqueVisible() || !canevasConsole) return;
         const largeur = zoneGraphique.clientWidth, hauteur = zoneGraphique.clientHeight;
@@ -7941,16 +8337,21 @@ try {
         ctx.font = '11px sans-serif';
         ctx.textBaseline = 'middle';
 
-        const series = collecterSeries();
-        if (!series.length) {
-            ctx.fillStyle = texte; ctx.globalAlpha = 0.7; ctx.textAlign = 'center';
-            ctx.fillText('Aucune valeur numérique à tracer.', largeur / 2, hauteur / 2 - 8);
-            ctx.fillText('Écrivez des nombres avec « afficher dans la console » (ex. 21.5, ou temp:21 lum:40).', largeur / 2, hauteur / 2 + 10);
-            ctx.globalAlpha = 1;
-            return;
-        }
+        // Blocs Graphique presents : leurs courbes seules (X choisi par le programme, noms des axes) ; sinon les
+        // nombres ecrits avec « afficher dans la console », en fonction du temps.
+        const donnees = donneesGraphique();
+        const commandes = donnees.commandes, series = donnees.series, axes = donnees.axes;
+        // Aucune mesure : encadre d'aide (HTML, comme l'editeur Arduino R4) et exports grises.
+        if (graphVide) graphVide.classList.toggle('replie', series.length > 0);
+        boutonsExportGraphique.forEach(b => { if (b) b.disabled = !series.length; });
+        if (series.length) {
+            const n = series.reduce((total, s) => total + s.points.length, 0);
+            etatGraphique(window.tr(n > 1 ? '{n} points' : '{n} point', { n }));
+        } else etatGraphique('');
+        if (!series.length) return;
 
-        const haut = 22, bas = 20, gauche = 46, droite = 12;
+        const haut = 22, bas = axes && axes.x ? 36 : 20, gauche = axes && axes.y ? 62 : 46, droite = 12;
+        const suffixeX = commandes ? '' : ' s';
         const zw = largeur - gauche - droite, zh = hauteur - haut - bas;
         if (zw < 30 || zh < 20) return;
         let tmax = Math.max(...series.map(s => s.points[s.points.length - 1].t));
@@ -7976,10 +8377,16 @@ try {
         gx.valeurs.forEach(t => {
             const x = Math.round(X(t)) + 0.5;
             ctx.globalAlpha = 0.3; ctx.beginPath(); ctx.moveTo(x, haut); ctx.lineTo(x, haut + zh); ctx.stroke();
-            ctx.globalAlpha = 1; ctx.fillText(formaterGraduation(t, gx.pas) + ' s', x, hauteur - bas / 2 + 1);
+            ctx.globalAlpha = 1; ctx.fillText(formaterGraduation(t, gx.pas) + suffixeX, x, haut + zh + 10);
         });
         ctx.globalAlpha = 1; ctx.strokeStyle = texte;
         ctx.strokeRect(gauche + 0.5, haut + 0.5, zw, zh);
+        // Noms des axes (bloc « nommer les axes ») : X sous les graduations, Y le long du bord gauche
+        if (axes && axes.x) { ctx.textAlign = 'center'; ctx.fillText(axes.x, gauche + zw / 2, hauteur - 8); }
+        if (axes && axes.y) {
+            ctx.save(); ctx.translate(10, haut + zh / 2); ctx.rotate(-Math.PI / 2);
+            ctx.textAlign = 'center'; ctx.fillText(axes.y, 0, 0); ctx.restore();
+        }
 
         // Courbes
         ctx.save();
@@ -7988,7 +8395,8 @@ try {
             ctx.strokeStyle = ctx.fillStyle = COULEURS_COURBES[i % COULEURS_COURBES.length];
             ctx.lineWidth = 1.8; ctx.lineJoin = 'round';
             ctx.beginPath();
-            s.points.forEach((p, k) => { if (k === 0) ctx.moveTo(X(p.t), Y(p.v)); else ctx.lineTo(X(p.t), Y(p.v)); });
+            // saut : premier point apres « reprendre la mesure », non relie au precedent
+            s.points.forEach((p, k) => { if (k === 0 || p.saut) ctx.moveTo(X(p.t), Y(p.v)); else ctx.lineTo(X(p.t), Y(p.v)); });
             ctx.stroke();
             if (s.points.length <= 80) s.points.forEach(p => { ctx.beginPath(); ctx.arc(X(p.t), Y(p.v), 2.4, 0, Math.PI * 2); ctx.fill(); });
         });
@@ -8017,6 +8425,12 @@ try {
             consoleSortie.classList.toggle('replie', graphique);
             zoneGraphique.classList.toggle('replie', !graphique);
         }
+        const barreTexte = document.getElementById('console-barre-texte');
+        const barreGraphique = document.getElementById('console-barre-graphique');
+        if (barreTexte) barreTexte.classList.toggle('replie', graphique);
+        if (barreGraphique) barreGraphique.classList.toggle('replie', !graphique);
+        const saisie = document.getElementById('console-saisie');
+        if (saisie) saisie.classList.toggle('replie', graphique);
         const ongletTexte = document.getElementById('onglet-console-texte');
         const ongletGraphique = document.getElementById('onglet-console-graphique');
         [[ongletTexte, !graphique], [ongletGraphique, graphique]].forEach(([b, actif]) => {
@@ -8031,7 +8445,63 @@ try {
     if (ongletTexteConsole) ongletTexteConsole.addEventListener('click', () => afficherVueConsole('texte'));
     if (ongletGraphiqueConsole) ongletGraphiqueConsole.addEventListener('click', () => afficherVueConsole('graphique'));
     if (zoneGraphique && 'ResizeObserver' in window) new ResizeObserver(() => planifierGraphique()).observe(zoneGraphique);
-    window.graphiqueConsoleTest = { extraireMesures, collecterSeries, dessinerGraphique, afficherVueConsole };
+
+    const btnGraphEffacer = document.getElementById('btn-graph-effacer');
+    if (btnGraphEffacer) btnGraphEffacer.addEventListener('click', () => { debutGraphique = Date.now(); dessinerGraphique(); });
+
+    const horodatage = () => {
+        const p = n => String(n).padStart(2, '0'), d = new Date();
+        return d.getFullYear() + p(d.getMonth() + 1) + p(d.getDate()) + '-' + p(d.getHours()) + p(d.getMinutes()) + p(d.getSeconds());
+    };
+    function telecharger(blob, nom) {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = nom;
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+    /** Mesures affichees en lignes [courbe, X, Y], avec les titres des colonnes. */
+    function tableauGraphique() {
+        const d = donneesGraphique();
+        const titreX = (d.axes && d.axes.x) || (d.commandes ? 'X' : window.tr('Temps (s)'));
+        const titreY = (d.axes && d.axes.y) || window.tr('Valeur');
+        const lignes = [];
+        d.series.forEach(s => s.points.forEach(p => lignes.push([s.nom, Math.round(p.t * 1000) / 1000, p.v])));
+        return { titres: [window.tr('Courbe'), titreX, titreY], lignes };
+    }
+    const btnGraphImage = document.getElementById('btn-graph-image');
+    if (btnGraphImage) btnGraphImage.addEventListener('click', () => {
+        if (!canevasConsole || !canevasConsole.width) return;
+        // Fond du graphique peint sous les courbes : le PNG garde les couleurs du theme en cours.
+        const image = document.createElement('canvas');
+        image.width = canevasConsole.width; image.height = canevasConsole.height;
+        const ctx = image.getContext('2d');
+        ctx.fillStyle = getComputedStyle(zoneGraphique).backgroundColor || '#ffffff';
+        ctx.fillRect(0, 0, image.width, image.height);
+        ctx.drawImage(canevasConsole, 0, 0);
+        image.toBlob(blob => { if (blob) { telecharger(blob, 'graphique-microbit-' + horodatage() + '.png'); etatGraphique(window.tr('Image du graphique enregistrée.')); } }, 'image/png');
+    });
+    const btnGraphCsv = document.getElementById('btn-graph-csv');
+    if (btnGraphCsv) btnGraphCsv.addEventListener('click', () => {
+        const t = tableauGraphique();
+        if (!t.lignes.length) return;
+        // Point-virgule et virgule decimale : le CSV s'ouvre directement dans Excel ou LibreOffice en francais.
+        const cellule = v => typeof v === 'number' ? String(v).replace('.', ',') : '"' + String(v).replace(/"/g, '""') + '"';
+        const csv = [t.titres, ...t.lignes].map(l => l.map(cellule).join(';')).join('\r\n');
+        telecharger(new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' }), 'graphique-microbit-' + horodatage() + '.csv');
+        etatGraphique(window.tr('{n} mesure(s) exportée(s) en tableau CSV.', { n: t.lignes.length }));
+    });
+    const btnGraphExcel = document.getElementById('btn-graph-excel');
+    if (btnGraphExcel) btnGraphExcel.addEventListener('click', () => {
+        const t = tableauGraphique();
+        if (!t.lignes.length) return;
+        const blob = creerXlsxTableau(window.tr('Mesures'), t.titres, t.lignes, [22, 14, 16]);
+        telecharger(new Blob([blob], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }),
+                    'graphique-microbit-' + horodatage() + '.xlsx');
+        etatGraphique(window.tr('{n} mesure(s) exportée(s) dans Excel.', { n: t.lignes.length }));
+    });
+    window.graphiqueConsoleTest = { extraireMesures, collecterSeries, collecterCommandesGraphique, dessinerGraphique, afficherVueConsole,
+                                    donneesGraphique, tableauGraphique };
 
     // ---- Afficher / masquer la barre (bouton >_ de la barre d'outils) ----
     // Masquee au depart. Elle s'ouvre toute seule a la premiere sortie (print
@@ -9311,7 +9781,7 @@ try {
         "La console affiche les messages écrits par le programme avec le bloc « afficher dans la console » " +
         "(catégorie Matrice LED). Elle se trouve en bas de l'application.\n\n" +
         "AFFICHER OU MASQUER\n" +
-        "• Bouton « Console » de la barre d'outils, ou croix ✕ de la console.\n" +
+        "• Bouton « Console » de la barre d'outils, ou bouton « Réduire » de la console.\n" +
         "• Elle s'ouvre toute seule à la première ligne reçue, sauf si vous l'avez fermée vous-même.\n" +
         "• Changez sa hauteur en glissant son bord haut (le trait orange qui apparaît au survol) : vers le haut " +
         "pour l'agrandir, vers le bas pour la réduire. La hauteur est retenue pour la fois suivante ; un double-clic " +
@@ -9343,13 +9813,13 @@ try {
         "virgule décimale quand la ligne ne contient qu'un nombre (« 21,5 »).\n" +
         "• La légende donne la dernière valeur de chaque courbe. Si le simulateur et la carte envoient " +
         "des valeurs, leurs courbes sont séparées. Les 600 derniers points de chaque courbe sont tracés.\n" +
-        "• Pour tracer une mesure, écrivez-la avec « afficher dans la console » dans une boucle avec une pause.\n\n" +
+        "• La barre du graphique : « Afficher » montre toute la mesure ou seulement la fin (10 s, 30 s, 1 min) ; « Effacer » vide le graphique sans toucher aux lignes de la console ; « Exporter » enregistre l'image (PNG), un tableau CSV ou un fichier Excel des mesures affichées.\n• Pour tracer une mesure, écrivez-la avec « afficher dans la console » dans une boucle avec une pause.\n\n" +
         "EXPORTER VERS EXCEL\n" +
-        "• Le bouton d'export (icône de tableur) enregistre toutes les lignes affichées dans un fichier Excel (.xlsx).\n" +
+        "• Dans l'onglet Console, « Exporter : Excel » enregistre toutes les lignes affichées dans un fichier Excel (.xlsx).\n" +
         "• Colonnes : numéro, heure, source (Simulateur, Carte ou Information), texte, et une colonne « Valeur " +
         "numérique » remplie quand la ligne est un nombre : pratique pour tracer une courbe de mesures.\n\n" +
         "AUTRES BOUTONS\n" +
-        "• La corbeille efface toute la console, y compris les lignes de la carte.";
+        "• « Effacer » (onglet Console) efface toute la console, y compris les lignes de la carte.";
 
     function ouvrirAideConsole() {
         if (!voileAide) return;
@@ -11731,7 +12201,7 @@ try {
     // qu'un ruban, les neuf autres n'ont rien à faire à l'écran.
     const SECTIONS_GROVE = [
         ['grove-sec-led',      /^grove_led_/],
-        ['grove-sec-ruban',    /^grove_ruban_/],
+        ['grove-sec-ruban',    /^(grove_ruban_|bitmaker_led)/],
         ['grove-sec-4digit',   /^grove_4d_/],
         ['grove-sec-ultrason', /^grove_ultrason_/],
         ['grove-sec-joystick', /^grove_joystick_/],
@@ -11740,6 +12210,7 @@ try {
         ['grove-sec-lumiere',  /^grove_lumiere$/],
         ['grove-sec-pir',      /^grove_pir$/],
         ['grove-sec-buzzer',   /^grove_buzzer_/],
+        ['grove-sec-mp3',      /^grove_mp3_/],
         ['grove-sec-relais',   /^grove_relais$/],
         ['grove-sec-oled',     /^grove_oled_/],
         ['grove-sec-gestes',   /^grove_gestes_/],
@@ -11809,7 +12280,127 @@ try {
         etatSortiesGrove.buzzer = {};
         majSonBuzzer();
         dessinerSortiesGrove();
+        reinitialiserMp3();
     };
+
+    // Lecteur MP3 Grove : etat (piste, lecture, volume, mode) dans « Peripheriques », comme le comprendrait le vrai
+    // module, et musique jouee par le navigateur : les pistes 1 a 6 sont les melodies de musiques-mp3.js (libres de
+    // droits), a la place des fichiers de la carte microSD. Suivant / Precedent tournent en boucle sur ces pistes.
+    const MODES_MP3 = ['une fois', 'répéter la piste', 'tout répéter', 'aléatoire'];
+    const DEMI_TONS_MP3 = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
+    /** « A4 » -> 440 Hz ; « R » (silence) ou note inconnue -> 0. */
+    function frequenceNoteMp3(nom) {
+        const m = /^([A-G])([#b]?)(\d)$/.exec(nom);
+        if (!m) return 0;
+        const midi = DEMI_TONS_MP3[m[1]] + (m[2] === '#' ? 1 : m[2] === 'b' ? -1 : 0) + (Number(m[3]) + 1) * 12;
+        return 440 * Math.pow(2, (midi - 69) / 12);
+    }
+    const pistesMp3 = () => window.MUSIQUES_MP3 || [];
+    let etatMp3 = null;
+    let sonMp3 = null;   // { contexte, gain, reste (ms), debut, fin (minuterie de fin de piste) }
+    function arreterSonMp3() {
+        if (!sonMp3) return;
+        clearTimeout(sonMp3.fin);
+        sonMp3.contexte.close().catch(() => {});
+        sonMp3 = null;
+    }
+    // Volume 0 a 31 du module -> gain du navigateur (courbe quadratique, plafond modere : ce n'est qu'un essai)
+    const gainMp3 = () => Math.pow(etatMp3.volume / 31, 2) * 0.3;
+    function jouerPisteMp3() {
+        arreterSonMp3();
+        const morceau = pistesMp3()[etatMp3.piste - 1];
+        etatMp3.absente = !morceau;
+        if (!morceau) { etatMp3.lecture = 'arrêt'; return; }
+        try {
+            const Contexte = window.AudioContext || window.webkitAudioContext;
+            const contexte = new Contexte(), gain = contexte.createGain();
+            gain.gain.value = gainMp3();
+            gain.connect(contexte.destination);
+            const temps = 60 / morceau.tempo, jetons = morceau.notes.trim().split(/\s+/);
+            let t = contexte.currentTime + 0.05;
+            for (let i = 0; i + 1 < jetons.length; i += 2) {
+                const f = frequenceNoteMp3(jetons[i]), d = Number(jetons[i + 1]) * temps;
+                if (f && d > 0) {
+                    // Son « triangle » doux, attaque et relache courtes : les notes repetees restent distinctes
+                    const osc = contexte.createOscillator(), env = contexte.createGain();
+                    osc.type = 'triangle'; osc.frequency.value = f;
+                    env.gain.setValueAtTime(0, t);
+                    env.gain.linearRampToValueAtTime(1, t + 0.012);
+                    env.gain.setValueAtTime(1, Math.max(t + 0.012, t + d * 0.82));
+                    env.gain.linearRampToValueAtTime(0, t + d * 0.92);
+                    osc.connect(env); env.connect(gain);
+                    osc.start(t); osc.stop(t + d);
+                }
+                t += d;
+            }
+            const duree = (t - contexte.currentTime) * 1000 + 150;
+            sonMp3 = { contexte, gain, reste: duree, debut: performance.now(), fin: setTimeout(finPisteMp3, duree) };
+        } catch (erreur) { sonMp3 = null; }
+    }
+    function pauseSonMp3(enPause) {
+        if (!sonMp3) return;
+        clearTimeout(sonMp3.fin);
+        if (enPause) {
+            sonMp3.reste -= performance.now() - sonMp3.debut;
+            sonMp3.contexte.suspend().catch(() => {});
+        } else {
+            sonMp3.debut = performance.now();
+            sonMp3.contexte.resume().catch(() => {});
+            sonMp3.fin = setTimeout(finPisteMp3, Math.max(0, sonMp3.reste));
+        }
+    }
+    // Fin d'une piste : selon le mode de lecture, comme le module (une fois, repeter, tout repeter, aleatoire)
+    function finPisteMp3() {
+        const n = pistesMp3().length;
+        if (!etatMp3 || etatMp3.lecture !== 'lecture' || !n) return;
+        if (etatMp3.mode === 0) { arreterSonMp3(); etatMp3.lecture = 'arrêt'; dessinerMp3(); return; }
+        if (etatMp3.mode === 2) etatMp3.piste = etatMp3.piste >= n ? 1 : etatMp3.piste + 1;
+        if (etatMp3.mode === 3) etatMp3.piste = 1 + Math.floor(Math.random() * n);
+        jouerPisteMp3();
+        dessinerMp3();
+    }
+    function reinitialiserMp3() {
+        arreterSonMp3();
+        etatMp3 = { piste: 1, lecture: 'arrêt', volume: 20, mode: 0, utilise: false, absente: false };
+        dessinerMp3();
+    }
+    function dessinerMp3() {
+        const zone = document.getElementById('grove-mp3');
+        if (!zone || !etatMp3) return;
+        if (!etatMp3.utilise) { zone.innerHTML = '<span class="grove-vide">' + window.tr('aucun ordre reçu') + '</span>'; return; }
+        const symbole = { 'lecture': '▶', 'pause': '❚❚', 'arrêt': '■' }[etatMp3.lecture];
+        const morceau = pistesMp3()[etatMp3.piste - 1];
+        const titre = morceau ? window.tr(morceau.titre) : window.tr('piste absente (le simulateur en a {n})', { n: pistesMp3().length });
+        zone.innerHTML = '<div class="grove-sortie mp3-etat"><span class="mp3-symbole' + (etatMp3.lecture === 'lecture' ? ' on' : '') +
+            '" aria-hidden="true">' + symbole + '</span><span>' +
+            window.tr('Piste {p} : {t}', { p: etatMp3.piste, t: titre }) + '<br>' +
+            window.tr('{l} · volume {v} · {m}', { l: window.tr(etatMp3.lecture === 'arrêt' ? 'à l\'arrêt' : etatMp3.lecture),
+                                                  v: etatMp3.volume, m: window.tr(MODES_MP3[etatMp3.mode] || '') }) + '</span></div>';
+    }
+    window.etatMp3Test = () => etatMp3 && Object.assign({ son: !!sonMp3, suspendu: !!(sonMp3 && sonMp3.contexte.state === 'suspended') }, etatMp3);
+    function appliquerMp3(action) {
+        const e = etatMp3, n = Math.max(1, pistesMp3().length);
+        e.utilise = true;
+        if (action.quoi === 'piste') { e.piste = Math.max(1, Math.round(action.valeur)); e.lecture = 'lecture'; jouerPisteMp3(); }
+        else if (action.quoi === 'volume') e.volume = Math.max(0, Math.min(31, Math.round(action.valeur)));
+        else if (action.quoi === 'mode') e.mode = Math.round(action.valeur);
+        else if (action.ordre === 'lecture_pause') {
+            if (e.lecture === 'lecture') { e.lecture = 'pause'; pauseSonMp3(true); }
+            else if (e.lecture === 'pause' && sonMp3) { e.lecture = 'lecture'; pauseSonMp3(false); }
+            else { e.lecture = 'lecture'; jouerPisteMp3(); }
+        }
+        else if (action.ordre === 'stop') { e.lecture = 'arrêt'; arreterSonMp3(); }
+        else if (action.ordre === 'suivant') { e.piste = e.piste >= n ? 1 : e.piste + 1; e.lecture = 'lecture'; jouerPisteMp3(); }
+        else if (action.ordre === 'precedent') { e.piste = e.piste <= 1 ? n : e.piste - 1; e.lecture = 'lecture'; jouerPisteMp3(); }
+        else if (action.ordre === 'volume+') e.volume = Math.min(31, e.volume + 2);
+        else if (action.ordre === 'volume-') e.volume = Math.max(0, e.volume - 2);
+        if (sonMp3) sonMp3.gain.gain.value = gainMp3();
+        dessinerMp3();
+    }
+    window.simu_mp3 = function(quoi, ordre, valeur) {
+        window.simuQueue.push({ type: 'mp3', quoi: String(quoi), ordre: String(ordre), valeur: Number(valeur) });
+    };
+    reinitialiserMp3();
 
     function dessinerSortiesGrove() {
         const lignes = (etat, dessin) => {
@@ -13692,6 +14283,10 @@ try {
         else if (action.type === 'groveSortie') {
             if (etatSortiesGrove[action.nom]) etatSortiesGrove[action.nom][action.broche] = action.valeur ? 1 : 0;
             dessinerSortiesGrove();
+            window.simu_playQueue();
+        }
+        else if (action.type === 'mp3') {
+            appliquerMp3(action);
             window.simu_playQueue();
         }
         else if (action.type === 'barreLed') {

@@ -409,7 +409,7 @@ const ETAPES_CONSOLE = [
         titre: '6. L\'onglet Graphique',
         texte: 'L\'onglet « Graphique » trace en courbes les valeurs numériques de la console, au fil du temps (axe horizontal en ' +
             'secondes). Formats reconnus : un nombre par ligne (21.5), plusieurs courbes (12 40 7 ou (12, 40, 7)) ou des courbes ' +
-            'nommées (temp:21 lum:40). Les autres lignes sont ignorées. Pour tracer une mesure, écrivez-la dans une boucle avec une pause.',
+            'nommées (temp:21 lum:40). Les autres lignes sont ignorées. Pour tracer une mesure, écrivez-la dans une boucle avec une pause. Sa barre choisit la durée affichée, efface les mesures et les exporte (image, tableau CSV, Excel).',
         cible: '#onglet-console-graphique',
         avant: ouvrirConsole,
         consigne: 'Cliquez sur l\'onglet « Graphique ».',
@@ -417,14 +417,14 @@ const ETAPES_CONSOLE = [
     },
     {
         titre: '7. Effacer la console',
-        texte: 'La corbeille efface toutes les lignes de la console, y compris celles de la carte. Avant chaque simulation, la ' +
+        texte: 'Le bouton « Effacer » efface toutes les lignes de la console, y compris celles de la carte. Avant chaque simulation, la ' +
             'console est aussi effacée toute seule.',
         cible: '#btn-console-effacer',
         avant: () => { ouvrirConsole(); const t = $('#onglet-console-texte'); if (t) t.click(); },
     },
     {
         titre: '8. Exporter vers Excel',
-        texte: 'Le bouton avec le petit graphique enregistre toutes les lignes affichées dans un fichier Excel (.xlsx) : numéro, ' +
+        texte: 'Le bouton « Excel » enregistre toutes les lignes affichées dans un fichier Excel (.xlsx) : numéro, ' +
             'heure, source (Simulateur, Carte ou Information), texte, et une colonne « Valeur numérique » remplie quand la ligne ' +
             'est un nombre : pratique pour faire des tableaux et des courbes de mesures.',
         cible: '#btn-console-exporter',
@@ -448,7 +448,7 @@ const ETAPES_CONSOLE = [
     },
     {
         titre: '11. L\'aide et la fermeture',
-        texte: 'Le bouton « ? » ouvre l\'aide complète de la console. La croix ✕ masque la console : elle ne se rouvrira alors plus ' +
+        texte: 'Le bouton « ? » ouvre l\'aide complète de la console. Le bouton « Réduire » masque la console : elle ne se rouvrira alors plus ' +
             'toute seule, il faudra cliquer sur le bouton de la console.',
         cible: '#btn-console-aide',
         avant: ouvrirConsole,

@@ -242,13 +242,20 @@ majCoches();
 function suivreBascule(idBouton, idLibelle, quandOuvert, quandFerme) {
     const bouton = $(idBouton), libelle = $(idLibelle);
     if (!bouton || !libelle) return;
-    const maj = () => { libelle.textContent = bouton.classList.contains('inactif') ? quandFerme : quandOuvert; };
+    // aria-pressed : etat du panneau pour les lecteurs d'ecran, utile quand le libelle ne change pas (Console, Simulation)
+    const maj = () => {
+        const ouvert = !bouton.classList.contains('inactif');
+        libelle.textContent = ouvert ? quandOuvert : quandFerme;
+        bouton.setAttribute('aria-pressed', String(ouvert));
+    };
     new MutationObserver(maj).observe(bouton, { attributes: true, attributeFilter: ['class'] });
     maj();
 }
-suivreBascule('btn-vue-console', 'lib-console', 'Masquer la console', 'Afficher la console');
-suivreBascule('btn-vue-simu', 'lib-simulation', 'Masquer la simulation', 'Afficher la simulation');
-suivreBascule('btn-vue-code', 'lib-code', 'Masquer le code', 'Afficher le code');
+// Libelles fixes « Console », « Simulation » et « Code » (demandes de l'utilisateur, nov. 2026) : l'etat ouvert se voit au
+// soulignement du bouton (classe inactif absente).
+suivreBascule('btn-vue-console', 'lib-console', 'Console', 'Console');
+suivreBascule('btn-vue-simu', 'lib-simulation', 'Simulation', 'Simulation');
+suivreBascule('btn-vue-code', 'lib-code', 'Code', 'Code');
 
 // ---------- Voyant de connexion de la carte (bouton Console) ----------
 // Le bouton « Moniteur serie » du modele est fusionne dans « Console » : la console EST le moniteur.

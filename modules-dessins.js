@@ -137,6 +137,43 @@ function dessinBuzzer(x, y) {
     return s.join('\n');
 }
 
+/** Lecteur MP3 Grove v3.0 (puce WT2003S ; circuit de 40 x 20 mm, fiche Seeed, nov. 2026). Dessin simplifie d'apres la
+    photo du wiki Seeed : prise Grove J1 a gauche (GND VCC RX TX de haut en bas), puce WT2003S au centre, prise casque
+    3,5 mm au bord droit, connecteur JST du haut-parleur en bas a droite. La carte microSD se met au dos (non dessinee).
+    Contacts dans l'ordre des fils : TX (jaune, signal 1), RX (blanc), VCC, GND. */
+function dessinMp3(x, y) {
+    const k = K_MODULE, X = v => x + v * k, Y = v => y + v * k;
+    const T = (tx, ty, t, taille, ancre, rot) => serigraphie(X, Y, k, tx, ty, t, taille, ancre, rot);
+    const s = [oreille(X(20), Y(-0.6), 1.75 * k), oreille(X(20), Y(20.6), 1.75 * k),
+        `<rect x="${X(0)}" y="${Y(0)}" width="${40 * k}" height="${20 * k}" rx="${0.8 * k}" fill="${C_MODULE.pcb}" stroke="${C_MODULE.bord}" stroke-width="1.2"/>`];
+    // Prise J1 a gauche (comme le bouton) : boitier, creux, 4 contacts
+    s.push(`<rect x="${X(1.0)}" y="${Y(3.2)}" width="${5.7 * k}" height="${13.8 * k}" rx="2" fill="${C_PRISE.fond}" stroke="${C_PRISE.bord}" stroke-width="1.2"/>
+            <rect x="${X(1.8)}" y="${Y(4.6)}" width="${3.4 * k}" height="${11.0 * k}" rx="1.5" fill="${C_PRISE.creux}"/>`);
+    [7.0, 9.1, 11.2, 13.3].forEach(v => s.push(`<rect x="${X(3.0)}" y="${Y(v) - 0.35 * k}" width="${0.8 * k}" height="${0.7 * k}" fill="#9aa1a5"/>`));
+    s.push(T(7.6, 4.6, 'J1', 1.3));
+    [['GND', 7.0], ['VCC', 9.1], ['RX', 11.2], ['TX', 13.3]].forEach(([t, v]) => s.push(T(8.3, v, t, 1.15)));
+    // Puce WT2003S (boitier SSOP a 20 pattes) et son nom
+    s.push(`<rect x="${X(15.0)}" y="${Y(6.0)}" width="${9.0 * k}" height="${7.0 * k}" rx="1" fill="#1b1b1b"/>`);
+    for (let i = 0; i < 10; i++) {
+        const px = 15.6 + i * 0.85;
+        s.push(`<rect x="${X(px)}" y="${Y(5.2)}" width="${0.4 * k}" height="${0.8 * k}" fill="${C_MODULE.metal}"/>
+                <rect x="${X(px)}" y="${Y(13.0)}" width="${0.4 * k}" height="${0.8 * k}" fill="${C_MODULE.metal}"/>`);
+    }
+    s.push(`<text x="${X(19.5)}" y="${Y(9.6)}" font-family="Inter, Segoe UI, Arial" font-size="${1.1 * k}" fill="#d7d7d7" text-anchor="middle" dominant-baseline="central">WT2003S</text>`);
+    s.push(composantCMS(X, Y, k, 26.0, 5.5, 1.1, 2.4), composantCMS(X, Y, k, 26.0, 10.0, 1.1, 2.4), T(19.5, 17.0, 'MP3 v3.0', 1.3, 'middle'));
+    // Prise casque 3,5 mm au bord droit : boitier noir, trou rond qui deborde du circuit
+    s.push(`<rect x="${X(30.5)}" y="${Y(3.0)}" width="${9.0 * k}" height="${7.5 * k}" rx="1" fill="#202124" stroke="#0e0e0e" stroke-width="1"/>
+            <rect x="${X(39.5)}" y="${Y(4.6)}" width="${1.6 * k}" height="${4.3 * k}" rx="1" fill="#2c2d30"/>
+            <circle cx="${X(40.3)}" cy="${Y(6.75)}" r="${1.3 * k}" fill="#060606"/>`);
+    s.push(T(33.5, 11.9, 'PHONE', 1.0, 'middle'));
+    // Connecteur JST 2 broches du haut-parleur (blanc), en bas a droite
+    s.push(`<rect x="${X(31.5)}" y="${Y(13.6)}" width="${6.0 * k}" height="${4.6 * k}" rx="1" fill="#f1efe8" stroke="#b9b5aa" stroke-width="1"/>
+            <rect x="${X(33.0)}" y="${Y(15.2)}" width="${0.8 * k}" height="${0.8 * k}" fill="#9aa1a5"/>
+            <rect x="${X(35.2)}" y="${Y(15.2)}" width="${0.8 * k}" height="${0.8 * k}" fill="#9aa1a5"/>`);
+    s.push(T(28.9, 16.0, 'SPK', 1.0, 'middle'));
+    return s.join('\n');
+}
+
 /** Relais Grove (TS 275725, photo du modele : 20 x 40 mm, relais HLS8L-DC3V-S-C ; dessin du modele, nov. 2026). Oreille
     en haut (sous le relais) et oreilles a gauche et a droite en bas, encoches sur les cotes et au bord bas ; le boitier
     noir du relais porte le symbole de son contact, ouvert ou ferme ; composants R1, R2, R3, Q1, D1, C1, U3, voyant D3
@@ -1445,10 +1482,14 @@ function dessinHub(x, y) {
             <path d="M ${X(40)} ${Y(10) - re} A ${re} ${re} 0 0 0 ${X(40)} ${Y(10) + re}" fill="none" stroke="${C_MODULE.bord}" stroke-width="1"/>`);
     // Pistes du bus qui relient les 4 prises
     [6.5, 8.5, 10.5, 12.5].forEach(v => s.push(`<path d="M ${X(5.9)} ${Y(v)} H ${X(32.9)}" stroke="#1d5f9e" stroke-width="${0.5 * k}"/>`));
+    // J1 s'ouvre vers le haut (cable de la carte, au-dessus) ; J2 a J4 vers le bas, vers leurs modules places dessous
+    // (variante B choisie par l'utilisateur, nov. 2026 : avant, leurs cables montaient puis contournaient le hub).
+    // Prise ouverte vers le bas : broches dans l'ordre inverse (GND, la moins enfoncee, cote ouverture), J au-dessus.
     HUB_PRISES.forEach((cx, i) => {
+        const bas = i > 0, y = v => bas ? 19 - v : v;
         s.push(priseDroite(X, Y, k, cx - 2.7, 4.5, cx + 2.7, 14.5, [6.5, 8.5, 10.5, 12.5], cx - 0.4));
-        [['GND', 6.5], ['VCC', 8.5], ['SDA', 10.5], ['SCL', 12.5]].forEach(([t, v]) => s.push(T(cx + 3.1, v, t, 0.75)));
-        s.push(T(cx, 16.4, 'J' + (i + 1), 1.0, 'middle'));
+        [['GND', 6.5], ['VCC', 8.5], ['SDA', 10.5], ['SCL', 12.5]].forEach(([t, v]) => s.push(T(cx + 3.1, y(v), t, 0.75)));
+        s.push(T(cx, bas ? 2.9 : 16.4, 'J' + (i + 1), 1.0, 'middle'));
     });
     return s.join('\n');
 }
@@ -1661,6 +1702,9 @@ export const DESSINS_MODULES = {
            dessin: (x, y, m) => dessinLed(x, y, m.couleur) },
     buzzer: { largeur: 20, hauteur: 20, connecteur: { x: 10.0, y: 0.8, sens: 'haut', contacts: [7.2, 9.0, 11.0, 12.9] },
            dessin: (x, y) => dessinBuzzer(x, y) },
+    // Lecteur MP3 v3.0 : prise J1 a gauche, GND VCC RX TX de haut en bas, donc contacts dans l'ordre des fils (TX, RX, VCC, GND)
+    mp3: { largeur: 40, hauteur: 20, connecteur: { x: 1.0, y: 10, sens: 'gauche', contacts: [13.3, 11.2, 9.1, 7.0] },
+           dessin: (x, y) => dessinMp3(x, y) },
     // Prise J2 au bord bas : GND VCC NC SIG de gauche a droite, donc contacts dans l'ordre des fils (SIG, NC, VCC, GND)
     relais: { largeur: 20, hauteur: 40, connecteur: { x: 10.6, y: 39.4, sens: 'bas', contacts: [13.7, 11.6, 9.5, 7.4] },
            dessin: (x, y) => dessinRelais(x, y) },
@@ -1739,7 +1783,8 @@ export const DESSINS_MODULES = {
     // comme pour le LCD RGB), GND VCC SDA SCL de haut en bas
     lcd: { largeur: 80, hauteur: 40, afficheur: true, filsDessus: true, connecteur: { x: 15.5, y: 34.15, sens: 'gauche', contacts: [37.1, 35.2, 33.1, 31.2] },
            dessin: (x, y) => dessinLcd16x2(x, y) },
-    // Hub I2C : cable de la carte sur J1 (arrive par le haut) ; les modules partent de J2, J3, J4 (montage.js, HUB_PRISES).
+    // Hub I2C : cable de la carte sur J1 (arrive par le haut) ; les modules partent de J2, J3, J4, ouvertes vers le bas
+    // (montage.js, HUB_PRISES).
     // Jamais tourne (afficheur) : ses modules sont toujours sur la rangee du dessous, leurs cables partent par le bas.
     hub: { largeur: 40, hauteur: 20, afficheur: true, connecteur: { x: 5.9, y: 4.5, sens: 'haut', contacts: [7.4, 6.4, 5.4, 4.4] },
            dessin: (x, y) => dessinHub(x, y) },

@@ -42,6 +42,30 @@
           ],
           "regle": { "bloc": "afficher_image_matrice", "dans": ["au_demarrage"], "leds_min": 3 },
           "solution": { "blocks": [ { "type": "au_demarrage", "x": 40, "y": 40, "inputs": { "DO": { "block": { "type": "afficher_image_matrice", "fields": { "LED_2_0": "TRUE", "LED_2_1": "TRUE", "LED_2_2": "TRUE", "LED_2_3": "TRUE", "LED_2_4": "TRUE" } } } }, "next": { "block": { "type": "boucle_infinie" } } } ] }
+        },
+        {
+          "id": "1.4",
+          "titre": "Bonjour puis un sourire",
+          "consigne": "Au démarrage, fais défiler le mot « Bonjour », puis affiche l'icône « Heureux ».",
+          "indices": [
+            "Les deux blocs sont dans la catégorie « Matrice LED ». L'ordre des blocs compte : le premier s'exécute d'abord.",
+            "Il faut « faire défiler » puis « afficher l'icône », l'un sous l'autre.",
+            "Dans « au démarrage » : « faire défiler » avec le texte « Bonjour », puis en dessous « afficher l'icône » Heureux."
+          ],
+          "regle": {"tous": [{"bloc": "faire_defiler", "dans": ["au_demarrage"]}, {"bloc": "afficher_icone", "champ": {"ICONE": "HAPPY"}, "dans": ["au_demarrage"]}]},
+          "solution": {"blocks": [{"type": "au_demarrage", "inputs": {"DO": {"block": {"type": "faire_defiler", "inputs": {"VALEUR": {"block": {"type": "text", "fields": {"TEXT": "Bonjour"}}}}, "next": {"block": {"type": "afficher_icone", "fields": {"ICONE": "HAPPY"}}}}}}, "next": {"block": {"type": "boucle_infinie"}}, "x": 40, "y": 40}]}
+        },
+        {
+          "id": "1.5",
+          "titre": "Afficher un nombre",
+          "consigne": "La matrice a 5 lignes de 5 LED. Affiche au démarrage le nombre total de LED : 25.",
+          "indices": [
+            "Pour montrer un nombre, il existe un autre bloc que « faire défiler » dans « Matrice LED ».",
+            "Le bloc « afficher » montre un nombre ; le nombre se trouve dans la catégorie « Maths » (bloc « 0 »).",
+            "Dans « au démarrage » : « afficher » avec le nombre 25 (ou le calcul 5 × 5 de la catégorie « Maths »)."
+          ],
+          "regle": {"bloc": "afficher_valeur", "dans": ["au_demarrage"], "contient": {"bloc": ["math_number", "math_arithmetic"]}},
+          "solution": {"blocks": [{"type": "au_demarrage", "inputs": {"DO": {"block": {"type": "afficher_valeur", "inputs": {"VALEUR": {"block": {"type": "math_number", "fields": {"NUM": 25}}}}}}}, "next": {"block": {"type": "boucle_infinie"}}, "x": 40, "y": 40}]}
         }
       ]
     },
@@ -92,6 +116,30 @@
           ],
           "regle": { "bloc": "controls_for", "entrees": { "FROM": 1, "TO": 5 }, "contient": [ { "bloc": ["afficher_valeur", "faire_defiler"] }, "attendre_temps" ] },
           "solution": { "variables": [ { "name": "i", "id": "vi" } ], "blocks": [ { "type": "au_demarrage", "x": 40, "y": 40, "inputs": { "DO": { "block": { "type": "controls_for", "fields": { "VAR": { "id": "vi" } }, "inputs": { "FROM": { "block": { "type": "math_number", "fields": { "NUM": 1 } } }, "TO": { "block": { "type": "math_number", "fields": { "NUM": 5 } } }, "BY": { "block": { "type": "math_number", "fields": { "NUM": 1 } } }, "DO": { "block": { "type": "afficher_valeur", "inputs": { "VALEUR": { "block": { "type": "variables_get", "fields": { "VAR": { "id": "vi" } } } } }, "next": { "block": { "type": "attendre_temps", "fields": { "UNITE": "s" }, "inputs": { "TEMPS": { "block": { "type": "math_number", "fields": { "NUM": 1 } } } } } } } } } } } }, "next": { "block": { "type": "boucle_infinie" } } } ] }
+        },
+        {
+          "id": "2.4",
+          "titre": "Répéter 3 fois",
+          "consigne": "Au démarrage, fais clignoter un cœur exactement 3 fois, puis plus rien.",
+          "indices": [
+            "Quand on connaît le nombre de répétitions, on utilise « répéter … fois » de la catégorie « Boucles ».",
+            "Dans « répéter 3 fois » : afficher le cœur, attendre, effacer l'écran, attendre.",
+            "Dans « au démarrage » : « répéter 3 fois » qui contient « afficher l'icône » Cœur, « attendre 0,5 s », « effacer l'écran », « attendre 0,5 s »."
+          ],
+          "regle": {"bloc": "controls_repeat_ext", "entrees": {"TIMES": 3}, "contient": ["afficher_icone", "effacer_ecran", "attendre_temps"]},
+          "solution": {"blocks": [{"type": "au_demarrage", "inputs": {"DO": {"block": {"type": "controls_repeat_ext", "inputs": {"TIMES": {"block": {"type": "math_number", "fields": {"NUM": 3}}}, "DO": {"block": {"type": "afficher_icone", "fields": {"ICONE": "HEART"}, "next": {"block": {"type": "attendre_temps", "fields": {"UNITE": "s"}, "inputs": {"TEMPS": {"block": {"type": "math_number", "fields": {"NUM": 0.5}}}}, "next": {"block": {"type": "effacer_ecran", "next": {"block": {"type": "attendre_temps", "fields": {"UNITE": "s"}, "inputs": {"TEMPS": {"block": {"type": "math_number", "fields": {"NUM": 0.5}}}}}}}}}}}}}}}}, "next": {"block": {"type": "boucle_infinie"}}, "x": 40, "y": 40}]}
+        },
+        {
+          "id": "2.5",
+          "titre": "Le chronomètre",
+          "consigne": "Remets le chronomètre à 0 au démarrage, puis affiche sans arrêt le nombre de secondes écoulées.",
+          "indices": [
+            "Les blocs du chronomètre sont dans la catégorie « Temps ».",
+            "« remettre le chronomètre à 0 » se place une seule fois au début ; « valeur du chronomètre » se place dans « afficher ».",
+            "« au démarrage » : « remettre le chronomètre à 0 ». « répéter indéfiniment » : « afficher » (valeur du chronomètre en s), puis « attendre 1 seconde »."
+          ],
+          "regle": {"tous": [{"bloc": "reset_chrono"}, {"bloc": "afficher_valeur", "ancetre": "boucle_infinie", "contient": "valeur_chrono"}]},
+          "solution": {"blocks": [{"type": "au_demarrage", "inputs": {"DO": {"block": {"type": "reset_chrono"}}}, "next": {"block": {"type": "boucle_infinie", "inputs": {"DO": {"block": {"type": "afficher_valeur", "inputs": {"VALEUR": {"block": {"type": "valeur_chrono", "fields": {"UNITE": "s"}}}}, "next": {"block": {"type": "attendre_temps", "fields": {"UNITE": "s"}, "inputs": {"TEMPS": {"block": {"type": "math_number", "fields": {"NUM": 1}}}}}}}}}}}, "x": 40, "y": 40}]}
         }
       ]
     },
@@ -148,6 +196,42 @@
             { "type": "au_demarrage", "x": 40, "y": 40, "next": { "block": { "type": "boucle_infinie" } } },
             { "type": "lorsque_logo", "x": 40, "y": 200, "fields": { "ACTION": "touched" }, "inputs": { "DO": { "block": { "type": "afficher_icone", "fields": { "ICONE": "HEART" } } } } }
           ] }
+        },
+        {
+          "id": "3.4",
+          "titre": "Les boutons A+B ensemble",
+          "consigne": "Quand on appuie en même temps sur les boutons A et B, fais défiler le texte « A+B ».",
+          "indices": [
+            "Le bloc « lorsque le bouton … est pressé » (catégorie « Capteurs ») a une liste : A, B ou A+B.",
+            "Choisis A+B dans la liste, puis mets un bloc d'affichage à l'intérieur.",
+            "Pose « lorsque le bouton A+B est pressé » et, dedans, « faire défiler » avec le texte « A+B ». En simulation, clique sur le bouton A+B."
+          ],
+          "regle": {"bloc": "lorsque_bouton", "champ": {"BOUTON": "ab"}, "contient": {"bloc": ["afficher_icone", "afficher_valeur", "faire_defiler", "afficher_image_matrice"]}},
+          "solution": {"blocks": [{"type": "au_demarrage", "next": {"block": {"type": "boucle_infinie"}}, "x": 40, "y": 40}, {"type": "lorsque_bouton", "fields": {"BOUTON": "ab"}, "inputs": {"DO": {"block": {"type": "faire_defiler", "inputs": {"VALEUR": {"block": {"type": "text", "fields": {"TEXT": "A+B"}}}}}}}, "x": 40, "y": 200}]}
+        },
+        {
+          "id": "3.5",
+          "titre": "Le bouton musical",
+          "consigne": "Quand on appuie sur le bouton A, la carte joue une mélodie.",
+          "indices": [
+            "Les sons sont dans la catégorie « Actionneurs (Audio) ».",
+            "Le bloc « jouer la mélodie » se place dans « lorsque le bouton A est pressé ».",
+            "Pose « lorsque le bouton A est pressé » et, dedans, « [Music] jouer la mélodie » (ou « [Audio] jouer la musique »)."
+          ],
+          "regle": {"bloc": "lorsque_bouton", "champ": {"BOUTON": "a"}, "contient": {"bloc": ["music_jouer_melodie", "audio_jouer"]}},
+          "solution": {"blocks": [{"type": "au_demarrage", "next": {"block": {"type": "boucle_infinie"}}, "x": 40, "y": 40}, {"type": "lorsque_bouton", "fields": {"BOUTON": "a"}, "inputs": {"DO": {"block": {"type": "music_jouer_melodie", "fields": {"MELODY": "ENTERTAINER"}}}}, "x": 40, "y": 200}]}
+        },
+        {
+          "id": "3.6",
+          "titre": "Fais du bruit !",
+          "consigne": "Quand le micro de la carte entend un bruit fort (un clap), affiche un fantôme. À tester sur la vraie carte : la simulation n'entend pas les sons.",
+          "indices": [
+            "Le micro de la micro:bit V2 a un bloc « lorsque … » dans la catégorie « Capteurs ».",
+            "Le bloc « lorsque le son bruyant est détecté » se pose seul dans la zone, comme « lorsque le bouton ».",
+            "Pose « lorsque le son bruyant est détecté » et, dedans, « afficher l'icône » Fantôme."
+          ],
+          "regle": {"bloc": "lorsque_son_detecte", "champ": {"SON": "LOUD"}, "contient": {"bloc": ["afficher_icone", "afficher_valeur", "faire_defiler", "afficher_image_matrice"]}},
+          "solution": {"blocks": [{"type": "au_demarrage", "next": {"block": {"type": "boucle_infinie"}}, "x": 40, "y": 40}, {"type": "lorsque_son_detecte", "fields": {"SON": "LOUD"}, "inputs": {"DO": {"block": {"type": "afficher_icone", "fields": {"ICONE": "GHOST"}}}}, "x": 40, "y": 200}]}
         }
       ]
     },
@@ -195,14 +279,39 @@
           "consigne": "Quand on secoue la carte, affiche un nombre au hasard entre 1 et 6.",
           "indices": [
             "Le hasard se trouve dans la catégorie « Maths ».",
-            "Le bloc « nombre aléatoire entre … et … » se règle de 1 à 6 et se place dans « afficher ».",
-            "« lorsque secouer » contient « afficher » avec « nombre aléatoire entre 1 et 6 »."
+            "Le bloc « entier aléatoire entre … et … » se règle de 1 à 6 et se place dans « afficher ».",
+            "« lorsque secouer » contient « afficher » avec « entier aléatoire entre 1 et 6 »."
           ],
-          "regle": { "bloc": "afficher_valeur", "contient": { "bloc": "math_random_int", "entrees": { "FROM": 1, "TO": 6 } } },
+          "regle": { "bloc": "afficher_valeur", "ancetre": "lorsque_geste", "contient": { "bloc": "math_random_int", "entrees": { "FROM": 1, "TO": 6 } } },
           "solution": { "blocks": [
             { "type": "au_demarrage", "x": 40, "y": 40, "next": { "block": { "type": "boucle_infinie" } } },
             { "type": "lorsque_geste", "x": 40, "y": 200, "fields": { "GESTE": "shake" }, "inputs": { "DO": { "block": { "type": "afficher_valeur", "inputs": { "VALEUR": { "block": { "type": "math_random_int", "inputs": { "FROM": { "block": { "type": "math_number", "fields": { "NUM": 1 } } }, "TO": { "block": { "type": "math_number", "fields": { "NUM": 6 } } } } } } } } } } }
           ] }
+        },
+        {
+          "id": "4.4",
+          "titre": "Remettre le compteur à zéro",
+          "consigne": "Le compteur de points est déjà programmé (bouton A). Ajoute : quand on appuie sur le bouton B, « points » revient à 0 et la carte affiche 0.",
+          "indices": [
+            "Pour donner une valeur à une variable, on utilise « définir … à » de la catégorie « Variables ».",
+            "Il faut un nouveau bloc « lorsque le bouton B est pressé ».",
+            "Dans « lorsque le bouton B est pressé » : « définir points à 0 », puis « afficher » avec la variable « points »."
+          ],
+          "depart": {"variables": [{"name": "points", "id": "vp"}], "blocks": [{"type": "au_demarrage", "inputs": {"DO": {"block": {"type": "variables_set", "fields": {"VAR": {"id": "vp"}}, "inputs": {"VALUE": {"block": {"type": "math_number", "fields": {"NUM": 0}}}}}}}, "next": {"block": {"type": "boucle_infinie"}}, "x": 40, "y": 40}, {"type": "lorsque_bouton", "fields": {"BOUTON": "a"}, "inputs": {"DO": {"block": {"type": "math_change", "fields": {"VAR": {"id": "vp"}}, "inputs": {"DELTA": {"block": {"type": "math_number", "fields": {"NUM": 1}}}}, "next": {"block": {"type": "afficher_valeur", "inputs": {"VALEUR": {"block": {"type": "variables_get", "fields": {"VAR": {"id": "vp"}}}}}}}}}}, "x": 40, "y": 220}]},
+          "regle": {"bloc": "lorsque_bouton", "champ": {"BOUTON": "b"}, "contient": {"bloc": "variables_set", "contient": {"bloc": "math_number", "champ": {"NUM": 0}}}},
+          "solution": {"variables": [{"name": "points", "id": "vp"}], "blocks": [{"type": "au_demarrage", "inputs": {"DO": {"block": {"type": "variables_set", "fields": {"VAR": {"id": "vp"}}, "inputs": {"VALUE": {"block": {"type": "math_number", "fields": {"NUM": 0}}}}}}}, "next": {"block": {"type": "boucle_infinie"}}, "x": 40, "y": 40}, {"type": "lorsque_bouton", "fields": {"BOUTON": "a"}, "inputs": {"DO": {"block": {"type": "math_change", "fields": {"VAR": {"id": "vp"}}, "inputs": {"DELTA": {"block": {"type": "math_number", "fields": {"NUM": 1}}}}, "next": {"block": {"type": "afficher_valeur", "inputs": {"VALEUR": {"block": {"type": "variables_get", "fields": {"VAR": {"id": "vp"}}}}}}}}}}, "x": 40, "y": 220}, {"type": "lorsque_bouton", "fields": {"BOUTON": "b"}, "inputs": {"DO": {"block": {"type": "variables_set", "fields": {"VAR": {"id": "vp"}}, "inputs": {"VALUE": {"block": {"type": "math_number", "fields": {"NUM": 0}}}}, "next": {"block": {"type": "afficher_valeur", "inputs": {"VALEUR": {"block": {"type": "variables_get", "fields": {"VAR": {"id": "vp"}}}}}}}}}}, "x": 40, "y": 360}]}
+        },
+        {
+          "id": "4.5",
+          "titre": "La lumière automatique",
+          "consigne": "Si la lumière est faible (niveau inférieur à 50), affiche un cœur ; sinon, efface l'écran. Cache la carte avec ta main pour essayer sur la vraie carte.",
+          "indices": [
+            "La carte mesure la lumière avec ses LED : bloc « niveau d'intensité lumineuse », catégorie « Capteurs ».",
+            "Il faut un « si … sinon » (clique sur la roue dentée du bloc « si » pour ajouter « sinon ») et le bloc « < » de « Logique ».",
+            "Dans « répéter indéfiniment » : si « niveau d'intensité lumineuse < 50 » alors « afficher l'icône » Cœur, sinon « effacer l'écran »."
+          ],
+          "regle": {"bloc": "controls_if", "ancetre": "boucle_infinie", "contient": ["capteur_luminosite", "logic_compare", "effacer_ecran", {"bloc": ["afficher_icone", "afficher_valeur", "faire_defiler", "afficher_image_matrice"]}]},
+          "solution": {"blocks": [{"type": "au_demarrage", "next": {"block": {"type": "boucle_infinie", "inputs": {"DO": {"block": {"type": "controls_if", "extraState": {"hasElse": true}, "inputs": {"IF0": {"block": {"type": "logic_compare", "fields": {"OP": "LT"}, "inputs": {"A": {"block": {"type": "capteur_luminosite"}}, "B": {"block": {"type": "math_number", "fields": {"NUM": 50}}}}}}, "DO0": {"block": {"type": "afficher_icone", "fields": {"ICONE": "HEART"}}}, "ELSE": {"block": {"type": "effacer_ecran"}}}}}}}}, "x": 40, "y": 40}]}
         }
       ]
     },
@@ -248,7 +357,7 @@
           "consigne": "Une carte envoie un message radio quand on appuie sur le bouton A ; l'autre carte joue un son quand elle le reçoit.",
           "indices": [
             "Les blocs de communication sont dans la catégorie « Radio ». Il faut d'abord allumer la radio.",
-            "Il te faut : « allumer la radio », un bloc d'envoi, un bloc « quand la radio reçoit » et un bloc de son (« Actionneurs »).",
+            "Il te faut : « allumer la radio », un bloc d'envoi, un bloc « quand la radio reçoit » et un bloc de son (« Actionneurs (Audio) »).",
             "« au démarrage » : « allumer la radio ». « lorsque le bouton A » : « envoyer msg radio ». « quand la radio reçoit » : « jouer la musique »."
           ],
           "regle": { "tous": [
@@ -268,7 +377,7 @@
           "consigne": "Quand on secoue la carte, tire un nombre au hasard entre 1 et 3 et affiche une icône différente selon le résultat (au moins 2 conditions « si »).",
           "indices": [
             "Combine ce que tu as appris : un geste, le hasard, des conditions et un affichage.",
-            "Utilise « nombre aléatoire entre 1 et 3 » et plusieurs « si … alors » qui comparent ce nombre. Garde-le dans une variable.",
+            "Utilise « entier aléatoire entre 1 et 3 » et plusieurs « si … alors » qui comparent ce nombre. Garde-le dans une variable.",
             "« lorsque secouer » : mets le nombre aléatoire dans une variable, puis « si variable = 1 afficher … », « si variable = 2 afficher … », sinon une troisième icône."
           ],
           "regle": { "tous": [
@@ -276,7 +385,32 @@
             { "bloc": "controls_if", "min": 2 },
             { "bloc": ["afficher_icone", "afficher_valeur", "faire_defiler", "afficher_image_matrice"], "min": 3 }
           ] },
-          "points": 2
+          "points": 2,
+          "solution": {"variables": [{"name": "tirage", "id": "vt"}], "blocks": [{"type": "au_demarrage", "next": {"block": {"type": "boucle_infinie"}}, "x": 40, "y": 40}, {"type": "lorsque_geste", "fields": {"GESTE": "shake"}, "inputs": {"DO": {"block": {"type": "variables_set", "fields": {"VAR": {"id": "vt"}}, "inputs": {"VALUE": {"block": {"type": "math_random_int", "inputs": {"FROM": {"block": {"type": "math_number", "fields": {"NUM": 1}}}, "TO": {"block": {"type": "math_number", "fields": {"NUM": 3}}}}}}}, "next": {"block": {"type": "controls_if", "inputs": {"IF0": {"block": {"type": "logic_compare", "fields": {"OP": "EQ"}, "inputs": {"A": {"block": {"type": "variables_get", "fields": {"VAR": {"id": "vt"}}}}, "B": {"block": {"type": "math_number", "fields": {"NUM": 1}}}}}}, "DO0": {"block": {"type": "afficher_icone", "fields": {"ICONE": "HEART"}}}}, "next": {"block": {"type": "controls_if", "inputs": {"IF0": {"block": {"type": "logic_compare", "fields": {"OP": "EQ"}, "inputs": {"A": {"block": {"type": "variables_get", "fields": {"VAR": {"id": "vt"}}}}, "B": {"block": {"type": "math_number", "fields": {"NUM": 2}}}}}}, "DO0": {"block": {"type": "afficher_icone", "fields": {"ICONE": "HAPPY"}}}}, "next": {"block": {"type": "controls_if", "inputs": {"IF0": {"block": {"type": "logic_compare", "fields": {"OP": "EQ"}, "inputs": {"A": {"block": {"type": "variables_get", "fields": {"VAR": {"id": "vt"}}}}, "B": {"block": {"type": "math_number", "fields": {"NUM": 3}}}}}}, "DO0": {"block": {"type": "afficher_icone", "fields": {"ICONE": "GHOST"}}}}}}}}}}}}}, "x": 40, "y": 200}]}
+        },
+        {
+          "id": "5.5",
+          "titre": "La boussole",
+          "consigne": "Affiche la lettre « N » quand la carte pointe vers le nord (direction inférieure à 20° ou supérieure à 340°), sinon efface l'écran.",
+          "indices": [
+            "La direction de la boussole (de 0 à 359°) est dans la catégorie « Capteurs ».",
+            "Le nord est autour de 0° : il faut deux comparaisons reliées par « ou » (catégorie « Logique »).",
+            "Dans « répéter indéfiniment » : si « direction < 20 » ou « direction > 340 » alors « afficher » le texte « N », sinon « effacer l'écran »."
+          ],
+          "regle": {"bloc": "controls_if", "ancetre": "boucle_infinie", "contient": ["capteur_boussole_direction", {"bloc": "logic_operation", "champ": {"OP": "OR"}}, {"bloc": ["afficher_icone", "afficher_valeur", "faire_defiler", "afficher_image_matrice"]}]},
+          "solution": {"blocks": [{"type": "au_demarrage", "next": {"block": {"type": "boucle_infinie", "inputs": {"DO": {"block": {"type": "controls_if", "extraState": {"hasElse": true}, "inputs": {"IF0": {"block": {"type": "logic_operation", "fields": {"OP": "OR"}, "inputs": {"A": {"block": {"type": "logic_compare", "fields": {"OP": "LT"}, "inputs": {"A": {"block": {"type": "capteur_boussole_direction"}}, "B": {"block": {"type": "math_number", "fields": {"NUM": 20}}}}}}, "B": {"block": {"type": "logic_compare", "fields": {"OP": "GT"}, "inputs": {"A": {"block": {"type": "capteur_boussole_direction"}}, "B": {"block": {"type": "math_number", "fields": {"NUM": 340}}}}}}}}}, "DO0": {"block": {"type": "afficher_valeur", "inputs": {"VALEUR": {"block": {"type": "text", "fields": {"TEXT": "N"}}}}}}, "ELSE": {"block": {"type": "effacer_ecran"}}}}}}}}, "x": 40, "y": 40}]}
+        },
+        {
+          "id": "5.6",
+          "titre": "Tracer la température",
+          "consigne": "Trace la courbe de la température dans le graphique, une mesure par seconde. Ouvre la console pour voir la courbe.",
+          "indices": [
+            "Les blocs de tracé sont dans la catégorie « Graphique ».",
+            "Le bloc « tracer … dans la courbe » reçoit la mesure ; il doit se répéter, avec une attente.",
+            "« au démarrage » : « nommer les axes ». « répéter indéfiniment » : « tracer » (température) « dans la courbe Courbe 1 », puis « attendre 1 seconde »."
+          ],
+          "regle": {"tous": [{"bloc": "graph_tracer", "ancetre": "boucle_infinie", "contient": "capteur_temperature"}, {"bloc": "attendre_temps", "ancetre": "boucle_infinie"}]},
+          "solution": {"blocks": [{"type": "au_demarrage", "inputs": {"DO": {"block": {"type": "graph_axes", "fields": {"NOM_X": "Temps (s)", "NOM_Y": "Température (°C)"}}}}, "next": {"block": {"type": "boucle_infinie", "inputs": {"DO": {"block": {"type": "graph_tracer", "fields": {"COURBE": "Courbe 1"}, "inputs": {"VAL": {"block": {"type": "capteur_temperature"}}}, "next": {"block": {"type": "attendre_temps", "fields": {"UNITE": "s"}, "inputs": {"TEMPS": {"block": {"type": "math_number", "fields": {"NUM": 1}}}}}}}}}}}, "x": 40, "y": 40}]}
         }
       ]
     },
@@ -304,7 +438,7 @@
           "indices": [
             "Il faut deux modules : un bouton poussoir et un buzzer, dans la catégorie « Grove ».",
             "Le bouton a un bloc « lorsque … est appuyé » qui se pose seul dans la zone, comme « au démarrage ».",
-            "Pose « lorsque le bouton sur P0 est appuyé » et mets dedans « bip du buzzer sur P1 pendant 300 ms »."
+            "Pose « lorsque le bouton poussoir sur P0 est appuyé » et mets dedans « bip du buzzer sur P1 pendant 300 ms »."
           ],
           "regle": {"bloc": "grove_bouton_lorsque", "contient": "grove_buzzer_bip"},
           "solution": {"blocks": [{"type": "au_demarrage", "x": 40, "y": 40}, {"type": "grove_bouton_lorsque", "fields": {"BROCHE": "pin0"}, "inputs": {"DO": {"block": {"type": "grove_buzzer_bip", "fields": {"BROCHE": "pin1"}, "inputs": {"DUREE": {"block": {"type": "math_number", "fields": {"NUM": 300}}}}}}}, "x": 40, "y": 240}]}
@@ -315,8 +449,8 @@
           "consigne": "Affiche en permanence sur la matrice la distance mesurée par le capteur à ultrasons Grove (sur P0).",
           "indices": [
             "Le capteur à ultrasons est dans « Grove », sous-catégorie « Ultrason ». Il donne une distance en cm.",
-            "Pour montrer un nombre, utilise « afficher la valeur » de la catégorie « Matrice LED ».",
-            "Dans « répéter indéfiniment » : afficher la valeur de « distance (cm) sur P0 », puis attendre 1 s."
+            "Pour montrer un nombre, utilise « afficher » de la catégorie « Matrice LED ».",
+            "Dans « répéter indéfiniment » : « afficher » avec « distance (cm) sur P0 », puis attendre 1 s."
           ],
           "regle": {"tous": [{"bloc": "afficher_valeur", "ancetre": "boucle_infinie", "contient": "grove_ultrason_cm"}, {"bloc": "attendre_temps", "ancetre": "boucle_infinie"}]},
           "solution": {"blocks": [{"type": "au_demarrage", "next": {"block": {"type": "boucle_infinie", "inputs": {"DO": {"block": {"type": "afficher_valeur", "inputs": {"VALEUR": {"block": {"type": "grove_ultrason_cm", "fields": {"BROCHE": "pin0"}}}}, "next": {"block": {"type": "attendre_temps", "fields": {"UNITE": "s"}, "inputs": {"TEMPS": {"block": {"type": "math_number", "fields": {"NUM": 1}}}}}}}}}}}, "x": 40, "y": 40}]}
@@ -339,18 +473,54 @@
           "consigne": "Affiche en permanence l'angle du potentiomètre Grove (sur P0) : tourne-le dans « Périphériques » pour voir la valeur changer.",
           "indices": [
             "Le potentiomètre est dans « Grove », sous-catégorie « Potentiomètre ».",
-            "Comme pour le télémètre, la valeur s'affiche avec « afficher la valeur » dans une boucle.",
-            "Dans « répéter indéfiniment » : afficher la valeur de « potentiomètre sur P0 (angle) »."
+            "Comme pour le télémètre, la valeur se montre avec « afficher » dans une boucle.",
+            "Dans « répéter indéfiniment » : « afficher » avec « potentiomètre sur P0 en angle »."
           ],
           "regle": {"bloc": "afficher_valeur", "ancetre": "boucle_infinie", "contient": "grove_potentiometre"},
           "solution": {"blocks": [{"type": "au_demarrage", "next": {"block": {"type": "boucle_infinie", "inputs": {"DO": {"block": {"type": "afficher_valeur", "inputs": {"VALEUR": {"block": {"type": "grove_potentiometre", "fields": {"BROCHE": "pin0", "UNITE": "angle"}}}}, "next": {"block": {"type": "attendre_temps", "fields": {"UNITE": "s"}, "inputs": {"TEMPS": {"block": {"type": "math_number", "fields": {"NUM": 1}}}}}}}}}}}, "x": 40, "y": 40}]}
+        },
+        {
+          "id": "6.6",
+          "titre": "La veilleuse",
+          "consigne": "Avec un capteur de lumière Grove sur P0 et une LED Grove sur P1 : la LED s'allume quand il fait sombre (valeur inférieure à 300) et s'éteint sinon.",
+          "indices": [
+            "Le capteur est dans « Grove », sous-catégorie « Capteur de lumière » ; la LED dans la sous-catégorie « LED ».",
+            "Il faut tester la lumière sans arrêt : « si … sinon » dans « répéter indéfiniment », avec le bloc « < » de « Logique ».",
+            "Si « luminosité sur P0 en valeur » < 300 alors LED à HAUT (1) sur P1, sinon LED à BAS (0) sur P1. Règle la lumière dans « Périphériques »."
+          ],
+          "regle": {"bloc": "controls_if", "ancetre": "boucle_infinie", "contient": ["grove_lumiere", "logic_compare", {"bloc": "grove_led_etat", "champ": {"ETAT": "1"}}, {"bloc": "grove_led_etat", "champ": {"ETAT": "0"}}]},
+          "solution": {"blocks": [{"type": "au_demarrage", "next": {"block": {"type": "boucle_infinie", "inputs": {"DO": {"block": {"type": "controls_if", "extraState": {"hasElse": true}, "inputs": {"IF0": {"block": {"type": "logic_compare", "fields": {"OP": "LT"}, "inputs": {"A": {"block": {"type": "grove_lumiere", "fields": {"BROCHE": "pin0", "UNITE": "brut"}}}, "B": {"block": {"type": "math_number", "fields": {"NUM": 300}}}}}}, "DO0": {"block": {"type": "grove_led_etat", "fields": {"ETAT": "1", "BROCHE": "pin1"}}}, "ELSE": {"block": {"type": "grove_led_etat", "fields": {"ETAT": "0", "BROCHE": "pin1"}}}}}}}}}, "x": 40, "y": 40}]}
+        },
+        {
+          "id": "6.7",
+          "titre": "Le ruban de couleurs",
+          "consigne": "Branche un ruban de LED RGB Grove sur P0. Fais-le passer du rouge au vert puis au bleu, une seconde chaque fois, sans fin.",
+          "indices": [
+            "Les blocs du ruban sont dans « Grove », sous-catégorie « LED ». Le ruban se définit une seule fois, au démarrage.",
+            "« colorer tout le ruban en … » change la couleur ; il en faut trois, chacun suivi d'une attente.",
+            "« au démarrage » : « définir le ruban RGB sur P0 ». « répéter indéfiniment » : ruban en rouge, attendre 1 s, en vert, attendre 1 s, en bleu, attendre 1 s."
+          ],
+          "regle": {"tous": [{"bloc": "grove_ruban_definir"}, {"bloc": "grove_ruban_couleur", "ancetre": "boucle_infinie", "min": 3}, {"bloc": "attendre_temps", "ancetre": "boucle_infinie", "min": 3}]},
+          "solution": {"blocks": [{"type": "au_demarrage", "inputs": {"DO": {"block": {"type": "grove_ruban_definir", "fields": {"BROCHE": "pin0", "NB": 16}}}}, "next": {"block": {"type": "boucle_infinie", "inputs": {"DO": {"block": {"type": "grove_ruban_couleur", "fields": {"COULEUR": "0xFF0000"}, "next": {"block": {"type": "attendre_temps", "fields": {"UNITE": "s"}, "inputs": {"TEMPS": {"block": {"type": "math_number", "fields": {"NUM": 1}}}}, "next": {"block": {"type": "grove_ruban_couleur", "fields": {"COULEUR": "0x00FF00"}, "next": {"block": {"type": "attendre_temps", "fields": {"UNITE": "s"}, "inputs": {"TEMPS": {"block": {"type": "math_number", "fields": {"NUM": 1}}}}, "next": {"block": {"type": "grove_ruban_couleur", "fields": {"COULEUR": "0x0000FF"}, "next": {"block": {"type": "attendre_temps", "fields": {"UNITE": "s"}, "inputs": {"TEMPS": {"block": {"type": "math_number", "fields": {"NUM": 1}}}}}}}}}}}}}}}}}}}, "x": 40, "y": 40}]}
+        },
+        {
+          "id": "6.8",
+          "titre": "Le juke-box",
+          "consigne": "Avec le lecteur MP3 Grove branché sur P0 / P14 : le bouton A joue la piste 1, le bouton B joue la piste 2.",
+          "indices": [
+            "Les blocs du lecteur sont dans « Grove », sous-catégorie « Lecteur MP3 ».",
+            "Il faut deux blocs « lorsque le bouton … est pressé », chacun avec « jouer la piste n° … ».",
+            "« lorsque le bouton A est pressé » : jouer la piste n° 1. « lorsque le bouton B est pressé » : jouer la piste n° 2."
+          ],
+          "regle": {"tous": [{"bloc": "lorsque_bouton", "champ": {"BOUTON": "a"}, "contient": {"bloc": "grove_mp3_piste", "entrees": {"PISTE": 1}}}, {"bloc": "lorsque_bouton", "champ": {"BOUTON": "b"}, "contient": {"bloc": "grove_mp3_piste", "entrees": {"PISTE": 2}}}]},
+          "solution": {"blocks": [{"type": "au_demarrage", "next": {"block": {"type": "boucle_infinie"}}, "x": 40, "y": 40}, {"type": "lorsque_bouton", "fields": {"BOUTON": "a"}, "inputs": {"DO": {"block": {"type": "grove_mp3_piste", "fields": {"PORT": "pin0, pin14"}, "inputs": {"PISTE": {"block": {"type": "math_number", "fields": {"NUM": 1}}}}}}}, "x": 40, "y": 200}, {"type": "lorsque_bouton", "fields": {"BOUTON": "b"}, "inputs": {"DO": {"block": {"type": "grove_mp3_piste", "fields": {"PORT": "pin0, pin14"}, "inputs": {"PISTE": {"block": {"type": "math_number", "fields": {"NUM": 2}}}}}}}, "x": 40, "y": 320}]}
         }
       ]
     },
     {
       "id": "n7",
       "titre": "Niveau 7 — Cartes d'extension",
-      "notion": "Piloter des moteurs et des servos avec la DFR0548 ou la Motor:bit",
+      "notion": "Piloter des moteurs, des servos et des LED avec la DFR0548, la Motor:bit ou la BitMaker V2",
       "exercices": [
         {
           "id": "7.1",
@@ -387,6 +557,86 @@
           ],
           "regle": {"tous": [{"bloc": "motorbit_moteur", "min": 2}, {"bloc": "attendre_temps", "min": 2}, {"bloc": "motorbit_moteur_arreter"}]},
           "solution": {"blocks": [{"type": "au_demarrage", "inputs": {"DO": {"block": {"type": "motorbit_moteur", "fields": {"MOTEUR": "1", "SENS": "1"}, "inputs": {"VITESSE": {"block": {"type": "math_number", "fields": {"NUM": 150}}}}, "next": {"block": {"type": "motorbit_moteur", "fields": {"MOTEUR": "2", "SENS": "1"}, "inputs": {"VITESSE": {"block": {"type": "math_number", "fields": {"NUM": 150}}}}, "next": {"block": {"type": "attendre_temps", "fields": {"UNITE": "s"}, "inputs": {"TEMPS": {"block": {"type": "math_number", "fields": {"NUM": 2}}}}, "next": {"block": {"type": "motorbit_moteur_arreter", "fields": {"MOTEUR": "2"}, "next": {"block": {"type": "attendre_temps", "fields": {"UNITE": "s"}, "inputs": {"TEMPS": {"block": {"type": "math_number", "fields": {"NUM": 1}}}}, "next": {"block": {"type": "motorbit_moteur_arreter", "fields": {"MOTEUR": "tous"}}}}}}}}}}}}}}, "x": 40, "y": 40}]}
+        },
+        {
+          "id": "7.4",
+          "titre": "Le robot recule",
+          "consigne": "Avec la carte Motor:bit, fais tourner les moteurs M1 et M2 dans le sens antihoraire (le robot recule) pendant 2 secondes, puis arrête les deux moteurs.",
+          "indices": [
+            "Les blocs sont dans « Cartes d'extension », sous-catégorie « Motor:bit ». Le sens se choisit dans la liste du bloc.",
+            "Il faut deux blocs moteur réglés sur « ↺ antihoraire », une attente, puis un arrêt de « tous » les moteurs.",
+            "Au démarrage : M1 ↺ antihoraire vitesse 150, M2 ↺ antihoraire vitesse 150, attendre 2 s, arrêter le moteur « tous »."
+          ],
+          "regle": {"tous": [{"bloc": "motorbit_moteur", "champ": {"SENS": "-1"}, "min": 2}, {"bloc": "attendre_temps"}, {"bloc": "motorbit_moteur_arreter", "champ": {"MOTEUR": "tous"}}]},
+          "solution": {"blocks": [{"type": "au_demarrage", "inputs": {"DO": {"block": {"type": "motorbit_moteur", "fields": {"MOTEUR": "1", "SENS": "-1"}, "inputs": {"VITESSE": {"block": {"type": "math_number", "fields": {"NUM": 150}}}}, "next": {"block": {"type": "motorbit_moteur", "fields": {"MOTEUR": "2", "SENS": "-1"}, "inputs": {"VITESSE": {"block": {"type": "math_number", "fields": {"NUM": 150}}}}, "next": {"block": {"type": "attendre_temps", "fields": {"UNITE": "s"}, "inputs": {"TEMPS": {"block": {"type": "math_number", "fields": {"NUM": 2}}}}, "next": {"block": {"type": "motorbit_moteur_arreter", "fields": {"MOTEUR": "tous"}}}}}}}}}}, "next": {"block": {"type": "boucle_infinie"}}, "x": 40, "y": 40}]}
+        },
+        {
+          "id": "7.5",
+          "titre": "Les LED de la BitMaker",
+          "consigne": "Avec la carte BitMaker V2 : le bouton A allume ses 4 LED en vert, le bouton B en rouge, et secouer la carte les éteint.",
+          "indices": [
+            "Les blocs sont dans « Cartes d'extension », sous-catégorie « BitMaker V2 ».",
+            "Il faut trois blocs « lorsque … » : bouton A, bouton B et secouer.",
+            "Bouton A : « toutes les LED de la carte en vert ». Bouton B : « … en rouge ». Lorsque secouer : « éteindre les LED de la carte »."
+          ],
+          "regle": {"tous": [{"bloc": "lorsque_bouton", "champ": {"BOUTON": "a"}, "contient": {"bloc": "bitmaker_leds", "champ": {"COULEUR": "0x00FF00"}}}, {"bloc": "lorsque_bouton", "champ": {"BOUTON": "b"}, "contient": {"bloc": "bitmaker_leds", "champ": {"COULEUR": "0xFF0000"}}}, {"bloc": "lorsque_geste", "contient": "bitmaker_leds_eteindre"}]},
+          "solution": {"blocks": [{"type": "au_demarrage", "inputs": {"DO": {"block": {"type": "carte_bitmaker"}}}, "next": {"block": {"type": "boucle_infinie"}}, "x": 40, "y": 40}, {"type": "lorsque_bouton", "fields": {"BOUTON": "a"}, "inputs": {"DO": {"block": {"type": "bitmaker_leds", "fields": {"COULEUR": "0x00FF00"}}}}, "x": 40, "y": 200}, {"type": "lorsque_bouton", "fields": {"BOUTON": "b"}, "inputs": {"DO": {"block": {"type": "bitmaker_leds", "fields": {"COULEUR": "0xFF0000"}}}}, "x": 40, "y": 320}, {"type": "lorsque_geste", "fields": {"GESTE": "shake"}, "inputs": {"DO": {"block": {"type": "bitmaker_leds_eteindre"}}}, "x": 40, "y": 440}]}
+        }
+      ]
+    },
+    {
+      "id": "n8",
+      "titre": "Niveau 8 — Aller plus loin",
+      "notion": "Listes, fonctions, textes et graphique",
+      "exercices": [
+        {
+          "id": "8.1",
+          "titre": "Le tirage au sort",
+          "consigne": "Range trois prénoms dans une liste. Quand on secoue la carte, fais défiler un prénom tiré au hasard dans la liste.",
+          "indices": [
+            "Une liste range plusieurs valeurs dans une seule variable : catégories « Listes » et « Variables ».",
+            "« créer une liste avec » reçoit trois textes ; « dans la liste … obtenir » peut choisir l'élément « au hasard ».",
+            "« au démarrage » : « définir prenoms à » « créer une liste avec » trois prénoms. « lorsque secouer » : « faire défiler » « dans la liste prenoms obtenir au hasard »."
+          ],
+          "regle": {"tous": [{"bloc": "lists_create_with"}, {"bloc": "lorsque_geste", "contient": [{"bloc": "faire_defiler"}, {"bloc": "lists_getIndex", "champ": {"WHERE": "RANDOM"}}]}]},
+          "solution": {"variables": [{"name": "prenoms", "id": "vl"}], "blocks": [{"type": "au_demarrage", "inputs": {"DO": {"block": {"type": "variables_set", "fields": {"VAR": {"id": "vl"}}, "inputs": {"VALUE": {"block": {"type": "lists_create_with", "extraState": {"itemCount": 3}, "inputs": {"ADD0": {"block": {"type": "text", "fields": {"TEXT": "Léa"}}}, "ADD1": {"block": {"type": "text", "fields": {"TEXT": "Sam"}}}, "ADD2": {"block": {"type": "text", "fields": {"TEXT": "Noé"}}}}}}}}}}, "next": {"block": {"type": "boucle_infinie"}}, "x": 40, "y": 40}, {"type": "lorsque_geste", "fields": {"GESTE": "shake"}, "inputs": {"DO": {"block": {"type": "faire_defiler", "inputs": {"VALEUR": {"block": {"type": "lists_getIndex", "fields": {"MODE": "GET", "WHERE": "RANDOM"}, "inputs": {"VALUE": {"block": {"type": "variables_get", "fields": {"VAR": {"id": "vl"}}}}}}}}}}}, "x": 40, "y": 220}]}
+        },
+        {
+          "id": "8.2",
+          "titre": "Ma première fonction",
+          "consigne": "Crée une fonction « clignoter » qui affiche un cœur, attend, puis efface l'écran. Appelle-la avec le bouton A et avec le bouton B.",
+          "indices": [
+            "Une fonction regroupe des blocs sous un nom, pour les réutiliser : catégorie « Fonctions ».",
+            "Le bloc « pour faire quelque chose » se renomme « clignoter » ; son bloc d'appel apparaît ensuite dans « Fonctions ».",
+            "Fonction « clignoter » : afficher l'icône Cœur, attendre 0,5 s, effacer l'écran. Puis « clignoter » dans « lorsque le bouton A » et dans « lorsque le bouton B »."
+          ],
+          "regle": {"tous": [{"bloc": "procedures_defnoreturn", "contient": ["afficher_icone", "effacer_ecran"]}, {"bloc": "procedures_callnoreturn", "min": 2}]},
+          "solution": {"blocks": [{"type": "au_demarrage", "next": {"block": {"type": "boucle_infinie"}}, "x": 40, "y": 40}, {"type": "procedures_defnoreturn", "fields": {"NAME": "clignoter"}, "inputs": {"STACK": {"block": {"type": "afficher_icone", "fields": {"ICONE": "HEART"}, "next": {"block": {"type": "attendre_temps", "fields": {"UNITE": "s"}, "inputs": {"TEMPS": {"block": {"type": "math_number", "fields": {"NUM": 0.5}}}}, "next": {"block": {"type": "effacer_ecran"}}}}}}}, "x": 40, "y": 200}, {"type": "lorsque_bouton", "fields": {"BOUTON": "a"}, "inputs": {"DO": {"block": {"type": "procedures_callnoreturn", "extraState": {"name": "clignoter"}}}}, "x": 40, "y": 360}, {"type": "lorsque_bouton", "fields": {"BOUTON": "b"}, "inputs": {"DO": {"block": {"type": "procedures_callnoreturn", "extraState": {"name": "clignoter"}}}}, "x": 300, "y": 360}]}
+        },
+        {
+          "id": "8.3",
+          "titre": "Un message composé",
+          "consigne": "Quand on appuie sur le bouton A, fais défiler « Temp : » suivi de la température mesurée par la carte.",
+          "indices": [
+            "Pour coller un texte et un nombre, utilise « créer un texte avec » de la catégorie « Texte ».",
+            "« créer un texte avec » a deux cases : le texte « Temp : » dans la première, la température dans la seconde.",
+            "« lorsque le bouton A est pressé » : « faire défiler » « créer un texte avec » « Temp : » et « température (° C) »."
+          ],
+          "regle": {"bloc": "lorsque_bouton", "champ": {"BOUTON": "a"}, "contient": {"bloc": "faire_defiler", "contient": {"bloc": "text_join", "contient": "capteur_temperature"}}},
+          "solution": {"blocks": [{"type": "au_demarrage", "next": {"block": {"type": "boucle_infinie"}}, "x": 40, "y": 40}, {"type": "lorsque_bouton", "fields": {"BOUTON": "a"}, "inputs": {"DO": {"block": {"type": "faire_defiler", "inputs": {"VALEUR": {"block": {"type": "text_join", "extraState": {"itemCount": 2}, "inputs": {"ADD0": {"block": {"type": "text", "fields": {"TEXT": "Temp : "}}}, "ADD1": {"block": {"type": "capteur_temperature"}}}}}}}}}, "x": 40, "y": 200}]}
+        },
+        {
+          "id": "8.4",
+          "titre": "Projet : la station météo",
+          "consigne": "Toutes les 2 secondes, trace la température dans le graphique. Si elle dépasse 25 °C, affiche une icône d'alerte ; sinon, efface l'écran.",
+          "indices": [
+            "Combine ce que tu as appris : une mesure, une condition, un affichage et le graphique.",
+            "Dans « répéter indéfiniment » : le bloc « tracer », puis un « si … sinon » qui compare la température à 25, puis une attente.",
+            "« tracer (température) dans la courbe », si « température > 25 » alors « afficher l'icône » Triste sinon « effacer l'écran », puis « attendre 2 secondes »."
+          ],
+          "points": 2,
+          "regle": {"tous": [{"bloc": "graph_tracer", "ancetre": "boucle_infinie", "contient": "capteur_temperature"}, {"bloc": "controls_if", "ancetre": "boucle_infinie", "contient": ["capteur_temperature", "logic_compare", {"bloc": ["afficher_icone", "afficher_valeur", "faire_defiler", "afficher_image_matrice"]}]}, {"bloc": "attendre_temps", "ancetre": "boucle_infinie"}]},
+          "solution": {"blocks": [{"type": "au_demarrage", "inputs": {"DO": {"block": {"type": "graph_axes", "fields": {"NOM_X": "Temps (s)", "NOM_Y": "Température (°C)"}}}}, "next": {"block": {"type": "boucle_infinie", "inputs": {"DO": {"block": {"type": "graph_tracer", "fields": {"COURBE": "Courbe 1"}, "inputs": {"VAL": {"block": {"type": "capteur_temperature"}}}, "next": {"block": {"type": "controls_if", "extraState": {"hasElse": true}, "inputs": {"IF0": {"block": {"type": "logic_compare", "fields": {"OP": "GT"}, "inputs": {"A": {"block": {"type": "capteur_temperature"}}, "B": {"block": {"type": "math_number", "fields": {"NUM": 25}}}}}}, "DO0": {"block": {"type": "afficher_icone", "fields": {"ICONE": "SAD"}}}, "ELSE": {"block": {"type": "effacer_ecran"}}}, "next": {"block": {"type": "attendre_temps", "fields": {"UNITE": "s"}, "inputs": {"TEMPS": {"block": {"type": "math_number", "fields": {"NUM": 2}}}}}}}}}}}}}, "x": 40, "y": 40}]}
         }
       ]
     }

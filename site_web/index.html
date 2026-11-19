@@ -55,6 +55,7 @@
   <script src="langue-en.js"></script>
   <script src="langue.js"></script>
   <script src="icones.js"></script>
+  <script src="musiques-mp3.js"></script>
   
   <script src="lib/brython/brython.min.js"></script>
   <script src="lib/brython/brython_stdlib.min.js"></script>
@@ -198,8 +199,17 @@
     .tb-btn svg { flex-shrink: 0; }
     .tb-btn:disabled, .tb-btn:disabled:hover { opacity: 0.45; cursor: not-allowed; background: transparent; }
     /* Fonction activee (console, simulation, code, IA affiches : classe .inactif absente) : liseré blanc sous le bouton. */
-    #btn-vue-console:not(.inactif), #btn-vue-simu:not(.inactif), #btn-vue-code:not(.inactif), #btn-vue-ia:not(.inactif) {
-      box-shadow: inset 0 -3px 0 #fff; border-radius: 4px 4px 0 0; }
+    #btn-vue-ia:not(.inactif) { box-shadow: inset 0 -3px 0 #fff; border-radius: 4px 4px 0 0; }
+    /* Capture, Console, Simulation, Code : icones seules, plus grandes (variante B choisie par l'utilisateur, nov. 2026). Le
+       nom reste dans la bulle (title) et pour les lecteurs d'ecran (aria-label) ; panneau ouvert = pastille claire. */
+    #capture-ecran-btn, #btn-vue-console, #btn-vue-simu, #btn-vue-code {
+      width: 38px; height: 36px; padding: 0; justify-content: center; border-radius: 6px; }
+    #capture-ecran-btn .tb-libelle, #btn-vue-console .tb-libelle, #btn-vue-simu .tb-libelle, #btn-vue-code .tb-libelle { display: none; }
+    #capture-ecran-btn svg, #btn-vue-console svg, #btn-vue-simu svg, #btn-vue-code svg { width: 20px; height: 20px; }
+    #btn-vue-console:not(.inactif), #btn-vue-simu:not(.inactif), #btn-vue-code:not(.inactif) { background: rgba(255,255,255,0.22); }
+    #btn-vue-console:not(.inactif):hover, #btn-vue-simu:not(.inactif):hover, #btn-vue-code:not(.inactif):hover { background: rgba(255,255,255,0.3); }
+    :root[data-contrast="high"] #btn-vue-console:not(.inactif), :root[data-contrast="high"] #btn-vue-simu:not(.inactif),
+    :root[data-contrast="high"] #btn-vue-code:not(.inactif) { background: transparent; box-shadow: inset 0 0 0 2px #fff; }
     .tb-sep { width: 1px; height: 24px; background: rgba(255,255,255,0.25); margin: 0 2px; }
     /* Icones SVG au trait des menus du bandeau (a la place des emojis, comme la version Arduino R4) : couleur du texte. */
     .tb-dropdown-menu .ic-menu { vertical-align: -2px; margin-right: 7px; flex-shrink: 0; }
@@ -210,6 +220,8 @@
        bulle donne le nom) ; 3 = IA et Radio en icones, selecteur de carte plus etroit ; 4 = Fichier et Aide reduits a leur
        icone, logo masque ; 5 = Televerser et Lancer la simulation en icones (dernier recours, tres petit ecran). */
     #toolbar.compact-1 .tb-btn { padding: 5px 4px; }
+    #toolbar.compact-1 #capture-ecran-btn, #toolbar.compact-1 #btn-vue-console, #toolbar.compact-1 #btn-vue-simu,
+    #toolbar.compact-1 #btn-vue-code { padding: 0; width: 34px; }
     #toolbar.compact-1 .tb-sep { margin: 0 1px; }
     #toolbar.compact-1 #tb-nomfichier { max-width: 170px; }
     #toolbar.compact-2 .tb-libelle { display: none; }
@@ -637,7 +649,25 @@
         padding: 8px 12px 10px; background: var(--fond-code); color: var(--texte-code);
         border-top: 2px solid var(--fond-chrome); }
     :root[data-contrast="high"] #console-panneau { border-top-width: 2px; border-top-color: #ffffff; }
-    #console-entete { display: flex; align-items: center; gap: 12px; }
+    /* En-tete et barres harmonises avec l'editeur Arduino R4 (nov. 2026) */
+    #console-entete { display: flex; align-items: center; gap: 12px; margin: -8px -12px 0; padding: 0 12px;
+        border-bottom: 2px solid var(--accent-console, #ff7a33); }
+    .console-barre { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 6px; font-size: 12px; }
+    .console-barre button { font-size: 12px; padding: 4px 10px; margin: 0; background: #4a4a4a; }
+    .console-barre button:hover { background: #5e5e5e; }
+    .console-barre-titre { color: #b8b8b8; display: inline-flex; align-items: center; gap: 6px; }
+    .console-barre-ecart { margin-left: 8px; }
+    #graph-fenetre { font-size: 12px; padding: 3px 6px; border-radius: 4px; background: var(--fond-saisie); color: var(--texte-saisie);
+        border: 1px solid var(--bordure-chrome); }
+    #graph-etat { flex: 1 1 auto; min-width: 0; font-size: 11px; color: #b8b8b8; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .console-barre button.graph-export:disabled { opacity: 0.45; cursor: not-allowed; }
+    #graph-vide { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; align-items: flex-start;
+        max-width: 560px; margin: auto; padding: 10px 18px; box-sizing: border-box; overflow: auto; font-size: 12.5px; line-height: 1.55;
+        color: var(--texte-saisie); }
+    #graph-vide.replie { display: none; }
+    #graph-vide .graph-vide-titre { margin: 0 0 4px; font-size: 14px; font-weight: 600; color: var(--accent-console, #ff7a33); }
+    #graph-vide ol { margin: 0; padding-left: 20px; }
+    #graph-vide .graph-vide-note { margin: 6px 0 0; font-size: 11.5px; opacity: 0.85; }
     /* Bord haut de la console : barre a glisser (souris ou doigt) pour regler la hauteur (un.js, « redimensionnement
        de la console »). Double-clic : hauteur de depart. Elle deborde de 4 px au-dessus pour etre facile a attraper. */
     #console-panneau { position: relative; }
@@ -645,12 +675,13 @@
         touch-action: none; }
     #console-redimensionneur::after { content: ''; position: absolute; left: 0; right: 0; top: 3px; height: 3px; background: transparent; }
     #console-redimensionneur:hover::after, #console-redimensionneur.actif::after { background: #cf4400; }
-    #console-entete h3 { margin: 0; color: #ff7a33; font-size: 13px; text-transform: uppercase; flex: 0 0 auto; }
-    #console-boutons { display: flex; gap: 6px; white-space: nowrap; flex: 0 0 auto; }
+    #console-boutons { display: flex; gap: 6px; white-space: nowrap; flex: 0 0 auto; margin-left: auto; }
+    #console-boutons button.console-discret { background: none; color: inherit; display: inline-flex; align-items: center; gap: 4px; }
+    #console-boutons button.console-discret:hover { background: #5e5e5e; }
     #console-boutons button { font-size: 12px; padding: 4px 10px; margin: 0; background: #4a4a4a; }
     #console-boutons button:hover { background: #5e5e5e; }
     #btn-console-carte.connecte { background: #27ae60; }
-    #console-etat { flex: 1 1 auto; min-width: 0; margin: 0; font-size: 11px; color: #b8b8b8;
+    #console-etat { flex: 1 1 auto; min-width: 0; margin: 0; font-size: 11px; color: #b8b8b8; order: -1;
         overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     /* resize: vertical = poignee en bas a droite pour agrandir la zone de sortie ;
        la barre grandit alors et l'espace de blocs se reduit (voir ResizeObserver, un.js). */
@@ -661,10 +692,21 @@
         background: var(--fond-saisie); color: var(--texte-saisie); border: 1px solid var(--bordure-chrome);
         border-radius: 4px; font: 12px/1.45 Consolas, "DejaVu Sans Mono", monospace; white-space: pre-wrap;
         word-break: break-all; }
-    #console-onglets { display: flex; gap: 4px; flex: 0 0 auto; }
-    #console-onglets button { font-size: 12px; padding: 4px 10px; margin: 0; background: #303030; }
-    #console-onglets button:hover { background: #5e5e5e; }
-    #console-onglets button.actif { background: #cf4400; }
+    #console-onglets { display: flex; gap: 2px; flex: 0 0 auto; align-self: stretch; }
+    .console-onglet { display: inline-flex; align-items: center; gap: 6px; margin: 0 0 -2px; padding: 8px 12px 7px; background: none;
+        border: none; border-bottom: 3px solid transparent; border-radius: 0; color: #b8b8b8; font-size: 12.5px; letter-spacing: 0.04em;
+        text-transform: uppercase; cursor: pointer; }
+    .console-onglet:hover { color: var(--texte-code, #fff); background: none; }
+    .console-onglet.actif { color: var(--accent-console, #ff7a33); border-bottom-color: var(--accent-console, #ff7a33); font-weight: 600; }
+    .console-onglet:focus-visible { outline: 2px solid var(--accent-console, #ff7a33); outline-offset: -2px; }
+    :root[data-theme="light"]:not([data-contrast="high"]) #console-panneau { --accent-console: #b33a00; }
+    :root[data-contrast="high"] #console-panneau { --accent-console: #ffffff; }
+    :root[data-theme="light"]:not([data-contrast="high"]) .console-onglet:not(.actif),
+    :root[data-theme="light"]:not([data-contrast="high"]) .console-barre-titre,
+    :root[data-theme="light"]:not([data-contrast="high"]) #graph-etat,
+    :root[data-theme="light"]:not([data-contrast="high"]) #console-etat { color: #4a4a4a; }
+    :root[data-theme="light"]:not([data-contrast="high"]) #console-boutons button.console-discret:hover { background: rgba(0, 0, 0, 0.08); }
+    :root[data-contrast="high"] .console-onglet, :root[data-contrast="high"] .console-barre-titre, :root[data-contrast="high"] #graph-etat { color: #ffffff; }
     /* Vue graphique : meme gabarit et meme poignee de redimensionnement que la sortie texte. */
     #console-graphique { box-sizing: border-box; height: 148px; min-height: 50px; max-height: 60vh; resize: vertical; overflow: hidden;
         margin: 6px 0; position: relative; background: var(--fond-saisie);
@@ -673,6 +715,8 @@
     .console-ligne { display: block; min-height: 1.45em; }
     .console-ligne[data-src="carte"] { color: #7ee787; }
     .console-ligne[data-src="info"] { color: #b8b8b8; font-style: italic; }
+    /* Commandes des blocs Graphique (#G|...) : lues par l'onglet Graphique, pas affichees (un.js) */
+    .console-ligne.console-commande { display: none; }
     #console-saisie { display: flex; gap: 6px; }
     #console-entree { flex: 1 1 auto; min-width: 0; padding: 5px 8px; font-size: 12px; border-radius: 4px;
         background: var(--fond-saisie); color: var(--texte-saisie); border: 1px solid var(--bordure-chrome); }
@@ -779,7 +823,11 @@
     .blocklyToolboxContents > *, .blocklyToolboxCategory { min-width: 0; max-width: 100%; box-sizing: border-box; }
     .blocklyToolboxCategory .blocklyTreeLabel { white-space: normal !important; }
     .blocklyToolboxCategory .blocklyTreeRow { border-left-width: 0 !important; position: relative; height: auto !important;
-        line-height: 1.3; white-space: normal; padding: 10px 12px 10px 37px !important; }
+        line-height: normal; white-space: normal; padding: 10px 12px 10px 37px !important; margin: 0 !important; }
+    /* Comme la version Arduino R4 (nov. 2026) : pas de marge de 3 px entre les rangees (defaut de Blockly), interligne normal,
+       et la fleche invisible des categories sans sous-categorie ne reserve plus 18 px (« Entrees/Sorties » tient sur une ligne). */
+    .blocklyToolboxCategory .blocklyTreeIcon:not(.blocklyTreeIconClosed):not(.blocklyTreeIconOpen) { display: none !important; }
+    .blocklyToolboxCategory > .blocklyTreeRow .blocklyTreeIcon { margin-block: -1px; }   /* fleche de 16 px : meme hauteur de rangee */
     .blocklyToolboxCategory .blocklyTreeRowContentContainer { display: flex; align-items: center; }
     .blocklyToolboxCategory .blocklyTreeLabel { min-width: 0; overflow-wrap: break-word; }
     .blocklyToolboxCategory .blocklyTreeRow::before {
@@ -1641,6 +1689,9 @@
     .grove-sortie { display: flex; align-items: center; gap: 6px; font-size: 11px; margin: 2px 0; }
     .buzzer-pastille { width: 14px; height: 14px; border-radius: 50%; background: #3b3f46; border: 2px solid #6b7480; box-sizing: border-box; }
     .buzzer-pastille.on { background: #ffb020; border-color: #ffd27a; animation: buzzer-vibre 0.12s linear infinite; }
+    /* Lecteur MP3 Grove (un.js, dessinerMp3) : symbole lecture / pause / arret, vert quand ca joue */
+    .mp3-symbole { min-width: 18px; text-align: center; font-size: 11px; color: #8b95a1; }
+    .mp3-symbole.on { color: #3fb950; }
     @keyframes buzzer-vibre { 50% { transform: translateX(1px); } }
     /* Capteurs a curseur (modele C) : petit module Grove dessine + afficheur numerique vert, curseur dessous. */
     .mesure-ligne { display: flex; align-items: center; gap: 8px; margin: 4px 0 6px; }
@@ -1746,7 +1797,7 @@
       --ec-page: #e4e4e0; --fond-chrome-profond: #dadad5; --fond-chrome: #e7e7e3; --bordure-chrome: #c6c6c0;
     }
     :root[data-theme="light"]:not([data-contrast="high"]) #toolbar {
-      background: linear-gradient(90deg, #1f9e8f, #6a2c91); border-bottom: none; }   /* sans filet magenta (demande de l'utilisateur, nov. 2026) */
+      background: #6a2c91; border-bottom: none; }   /* violet uni, sans degrade ni filet magenta (demande de l'utilisateur, nov. 2026) */
     :root[data-contrast="high"] {   /* SOMBRE + CONTRASTE ELEVE : noir, bord et texte blancs */
       --ec-page: #000;
       --ec-cat-txt: #fff; --ec-cat-hover: #333; --ec-cat-sel: #fff; --ec-cat-sel-txt: #000; --ec-cat-lisere: transparent;
@@ -1805,7 +1856,7 @@
       --ec-pan: #171c47; --ec-pan-bord: #2c3577; --ec-sep: #2c3577;
     }
     :root:is([data-saison="salon"], :not([data-saison])):not([data-theme="light"]):not([data-contrast="high"]) #toolbar {
-      background: linear-gradient(90deg, #1f9e8f, #6a2c91); border-bottom: none; }   /* sans filet magenta (demande de l'utilisateur, nov. 2026) */
+      background: #6a2c91; border-bottom: none; }   /* violet uni, sans degrade ni filet magenta (demande de l'utilisateur, nov. 2026) */
     /* Filet du bandeau : neige (Noel) ; rayures « bonbon » orange, jaune, blanc (Halloween) ; magenta (salon). */
     :root[data-saison]:not([data-theme="light"]):not([data-contrast="high"]) #toolbar { border-bottom-color: var(--accent-fonce); }
     :root[data-saison="halloween"]:not([data-theme="light"]):not([data-contrast="high"]) #toolbar {
@@ -2161,24 +2212,24 @@
     <div class="tb-sep"></div>
 
     <!-- 10. Capture -->
-    <button id="capture-ecran-btn" class="tb-btn" title="Capture d'écran des blocs (.png)" aria-label="Capture d'écran des blocs (.png)">
+    <button id="capture-ecran-btn" class="tb-btn" title="Capture : image des blocs (.png)" aria-label="Capture d'écran des blocs (.png)">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
       <span class="tb-libelle">Capture</span>
     </button>
 
     <!-- 11-13. Afficher / masquer la console, la simulation, le code (libelles geres par bandeau.js) -->
-    <button id="btn-vue-console" class="tb-btn inactif" title="Afficher ou masquer la console, en bas (print du simulateur et de la carte). Le voyant indique si la carte est connectée : se connecte avec « Connecter » dans la console." aria-label="Afficher ou masquer la console">
+    <button id="btn-vue-console" class="tb-btn inactif" title="Console : afficher ou masquer la console, en bas (print du simulateur et de la carte). La carte se connecte avec « Connecter » dans la console." aria-label="Afficher ou masquer la console">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="15" x2="21" y2="15"/></svg>
-      <span id="lib-console" class="tb-libelle">Afficher la console</span><span id="voyant-carte" class="voyant" role="img" aria-label="Carte non connectée" title="Carte non connectée"></span>
+      <span id="lib-console" class="tb-libelle">Console</span>
     </button>
-    <button id="btn-vue-simu" class="tb-btn" title="Masquer ou afficher le panneau de simulation, à droite" aria-label="Afficher ou masquer le simulateur">
+    <button id="btn-vue-simu" class="tb-btn" title="Simulation : afficher ou masquer le panneau de simulation, à droite" aria-label="Afficher ou masquer le simulateur">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="15" y1="3" x2="15" y2="21"/></svg>
-      <span id="lib-simulation" class="tb-libelle">Masquer la simulation</span>
+      <span id="lib-simulation" class="tb-libelle">Simulation</span>
     </button>
     <!-- Au lancement, le code est masque (classe inactif ici, replie sur #code-container) : demande de l'utilisateur. -->
-    <button id="btn-vue-code" class="tb-btn inactif" title="Afficher ou masquer le code MicroPython, à gauche de la simulation" aria-label="Afficher ou masquer la transcription MicroPython">
+    <button id="btn-vue-code" class="tb-btn inactif" title="Code : afficher ou masquer le code MicroPython, à gauche de la simulation" aria-label="Afficher ou masquer la transcription MicroPython">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
-      <span id="lib-code" class="tb-libelle">Afficher le code</span>
+      <span id="lib-code" class="tb-libelle">Code</span>
     </button>
     <!-- Bouton IA (comme le modele R4 : fenetre IA avec ses onglets IA et QR code), apres Code -->
     <button id="btn-vue-ia" class="tb-btn inactif" title="IA : reconnaissance d'images et de sons (caméra, micro)" aria-label="Afficher ou masquer le panneau IA">
@@ -2472,6 +2523,11 @@
         <div class="grove-bloc" id="grove-sec-buzzer">
           <span class="grove-titre">Buzzer</span>
           <div id="grove-buzzer"><span class="grove-vide">aucun</span></div>
+        </div>
+
+        <div class="grove-bloc" id="grove-sec-mp3">
+          <span class="grove-titre">Lecteur MP3</span>
+          <div id="grove-mp3" aria-live="polite"><span class="grove-vide">aucun ordre reçu</span></div>
         </div>
 
         <div class="grove-bloc" id="grove-sec-relais">
@@ -2795,24 +2851,54 @@
   <section id="console-panneau" class="replie" aria-label="Console">
     <div id="console-redimensionneur" role="separator" aria-orientation="horizontal" aria-label="Hauteur de la console"
          title="Glisser pour changer la hauteur de la console (double-clic : hauteur de départ)"></div>
+    <!-- En-tete harmonise avec l'editeur Arduino R4 (nov. 2026) : onglets CONSOLE / GRAPHIQUE soulignes, « Connecter »
+         (propre a la micro:bit : port serie USB, sert aux deux onglets), aide, « Reduire ». -->
     <div id="console-entete">
-      <h3>Console</h3>
-      <span id="console-onglets" role="tablist">
-        <button id="onglet-console-texte" class="btn-vue actif" role="tab" aria-selected="true" title="Afficher les lignes de texte">Texte</button>
-        <button id="onglet-console-graphique" class="btn-vue" role="tab" aria-selected="false" title="Tracer les valeurs numériques en courbes">Graphique</button>
+      <span id="console-onglets" role="tablist" aria-label="Console">
+        <button id="onglet-console-texte" class="console-onglet actif" role="tab" aria-selected="true" aria-controls="console-sortie" title="Afficher les lignes de texte"><svg class="ic-menu" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m4 17 6-6-6-6"/><path d="M12 19h8"/></svg><span>Console</span></button>
+        <button id="onglet-console-graphique" class="console-onglet" role="tab" aria-selected="false" aria-controls="console-graphique" title="Tracer les valeurs numériques en courbes"><svg class="ic-menu" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg><span>Graphique</span></button>
       </span>
-      <span id="console-etat">Simulateur : les « afficher dans la console » apparaissent ici.</span>
       <span id="console-boutons">
         <button id="btn-console-carte" class="btn-vue" title="Connecter la carte micro:bit branchée en USB pour lire ses print() (Chrome ou Edge)"><svg class="ic-menu" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22v-5"/><path d="M9 8V2"/><path d="M15 8V2"/><path d="M18 8v5a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V8Z"/></svg>Connecter</button>
-        <button id="btn-console-effacer" class="btn-vue" title="Effacer la console" aria-label="Effacer la console"><svg class="ic-menu" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
-        <button id="btn-console-exporter" class="btn-vue" title="Exporter la console dans un fichier Excel (.xlsx)" aria-label="Exporter la console en fichier Excel"><svg class="ic-menu" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h2"/><path d="M14 13h2"/><path d="M8 17h2"/><path d="M14 17h2"/></svg></button>
-        <button id="btn-console-aide" class="btn-vue" title="Aide : comment utiliser la console" aria-label="Aide sur la console">?</button>
-        <button id="btn-console-fermer" class="btn-vue" title="Masquer la console" aria-label="Masquer la console">✕</button>
+        <button id="btn-console-aide" class="btn-vue console-discret" title="Aide : comment utiliser la console" aria-label="Aide sur la console">?</button>
+        <button id="btn-console-fermer" class="btn-vue console-discret" title="Réduire la console" aria-label="Réduire la console"><svg class="ic-menu" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg><span>Réduire</span></button>
       </span>
+    </div>
+    <!-- Barre de l'onglet Console -->
+    <div id="console-barre-texte" class="console-barre">
+      <span id="console-etat">Simulateur : les « afficher dans la console » apparaissent ici.</span>
+      <button id="btn-console-effacer" class="btn-vue" title="Effacer les lignes de la console">Effacer</button>
+      <span class="console-barre-titre">Exporter :</span>
+      <button id="btn-console-exporter" class="btn-vue" title="Exporter les lignes de la console dans un fichier Excel (.xlsx)">Excel</button>
+    </div>
+    <!-- Barre de l'onglet Graphique (comme l'editeur Arduino R4) -->
+    <div id="console-barre-graphique" class="console-barre replie">
+      <label class="console-barre-titre">Afficher :
+        <select id="graph-fenetre" title="Montrer toute la mesure, ou suivre seulement la fin">
+          <option value="0">toute la mesure</option>
+          <option value="10">les 10 dernières secondes</option>
+          <option value="30">les 30 dernières secondes</option>
+          <option value="60">la dernière minute</option>
+        </select>
+      </label>
+      <button id="btn-graph-effacer" class="btn-vue" title="Effacer toutes les mesures du graphique (les lignes de la console restent)">Effacer</button>
+      <span class="console-barre-titre console-barre-ecart">Exporter :</span>
+      <button id="btn-graph-image" class="btn-vue graph-export" title="Télécharger l'image du graphique (PNG), pour un compte rendu">Image</button>
+      <button id="btn-graph-csv" class="btn-vue graph-export" title="Télécharger les mesures en tableau (CSV), lisible par Excel ou LibreOffice">Tableau CSV</button>
+      <button id="btn-graph-excel" class="btn-vue graph-export" title="Télécharger les mesures dans un fichier Excel (.xlsx)">Excel</button>
+      <span id="graph-etat" aria-live="polite"></span>
     </div>
     <pre id="console-sortie" role="log" aria-live="polite"></pre>
     <div id="console-graphique" class="replie" role="img" aria-label="Courbes des valeurs numériques de la console">
       <canvas id="console-canevas"></canvas>
+      <div id="graph-vide" class="replie" data-i18n="graph-vide">
+        <p class="graph-vide-titre">Aucune mesure pour l'instant</p>
+        <ol>
+          <li>Dans la catégorie <b>Graphique</b>, placez le bloc « <b>tracer</b> … dans la courbe … » dans votre programme.</li>
+          <li>Cliquez sur <b>« Lancer la simulation »</b>, ou <b>téléversez</b> le programme sur la carte.</li>
+        </ol>
+        <p class="graph-vide-note">Avec la carte, cliquez sur <b>« Connecter »</b> : les mesures arrivent par le câble USB. Les nombres écrits avec « afficher dans la console » (21.5, ou temp:21 lum:40) sont aussi tracés.</p>
+      </div>
     </div>
     <form id="console-saisie" autocomplete="off">
       <input id="console-entree" type="text" placeholder="Envoyer du texte à la carte…" disabled>
@@ -3509,6 +3595,11 @@
         sleep(int(duree))
         window.simu_groveSortie('buzzer', broche.id_pin, 0)
     def _grove_relais(broche, etat): window.simu_groveSortie('relais', broche.id_pin, 1 if etat else 0)
+    # Lecteur MP3 Grove : etat montre dans « Peripheriques » (un.js, simu_mp3), pas de son
+    def _mp3_ordre(rx, tx, ordre): window.simu_mp3('ordre', str(ordre), 0)
+    def _mp3_piste(rx, tx, n): window.simu_mp3('piste', '', int(n))
+    def _mp3_volume(rx, tx, v): window.simu_mp3('volume', '', int(v))
+    def _mp3_mode(rx, tx, mode): window.simu_mp3('mode', '', int(mode))
     class _EcranOLEDMock:
         def __init__(self): window.simu_oled('init', '', 0, 0)
         def effacer(self): window.simu_oled('effacer', '', 0, 0)
@@ -3810,6 +3901,8 @@
         return _grove_objets[nom]
 
     def _grove_ruban(): return _grove_obj('ruban', lambda: _NeoPixelMock(None, 16))
+    # BitMaker V2 : ses 4 LED (P13) s'affichent comme un ruban de 4 LED (panneau et montage)
+    def _bitmaker_leds(): return _grove_obj('leds_bitmaker', lambda: _NeoPixelMock(None, 4))
     def _grove_afficheur(): return _grove_obj('afficheur', lambda: _Afficheur4Mock(None, None))
     def _grove_gestes(): return _grove_obj('gestes', _CapteurGestesMock)
     def _grove_th(): return _grove_obj('th', _CapteurTHMock)
@@ -4046,6 +4139,7 @@
             '_grove_bouton': _grove_bouton, '_grove_bouton_front': _grove_bouton_front,
             '_grove_lumiere': _grove_lumiere, '_grove_pir': _grove_pir,
             '_grove_buzzer': _grove_buzzer, '_grove_buzzer_bip': _grove_buzzer_bip, '_grove_relais': _grove_relais,
+            '_mp3_ordre': _mp3_ordre, '_mp3_piste': _mp3_piste, '_mp3_volume': _mp3_volume, '_mp3_mode': _mp3_mode,
             '_EcranOLED': _EcranOLEDMock, '_grove_oled': _grove_oled,
             '_BarreLED': _BarreLEDMock, '_grove_barre': _grove_barre,
             '_CapteurBMP280': _CapteurBMP280Mock, '_grove_bmp280': _grove_bmp280,
@@ -4090,7 +4184,7 @@
             '_grove_moteur_effacer_defaut': _grove_moteur_effacer_defaut,
             '_grove_moteur_defaut': _grove_moteur_defaut,
             '_grove_objets': _grove_objets, '_grove_obj': _grove_obj,
-            '_grove_ruban': _grove_ruban, '_grove_afficheur': _grove_afficheur,
+            '_grove_ruban': _grove_ruban, '_bitmaker_leds': _bitmaker_leds, '_grove_afficheur': _grove_afficheur,
             '_grove_gestes': _grove_gestes, '_grove_th': _grove_th,
             '_grove_lcd': _grove_lcd, '_grove_lcdrgb': _grove_lcdrgb, '_grove_couleur': _grove_couleur,
             '_grove_scd30': _grove_scd30, '_grove_scd41': _grove_scd41,

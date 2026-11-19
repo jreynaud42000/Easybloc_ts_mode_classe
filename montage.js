@@ -46,6 +46,7 @@ const MODULES = [
     { motif: /^grove_lumiere$/,               nom: 'Capteur de lumière',    champs: ['BROCHE'], picto: 'lumiere' },
     { motif: /^grove_pir$/,                   nom: 'Détecteur de mouvement', champs: ['BROCHE'], picto: 'pir' },
     { motif: /^grove_buzzer_/,                nom: 'Buzzer',                champs: ['BROCHE'], picto: 'buzzer' },
+    { motif: /^grove_mp3_/,                   nom: 'Lecteur MP3',           champs: ['PORT'], picto: 'mp3', large: true },
     { motif: /^grove_relais$/,                nom: 'Relais',                champs: ['BROCHE'], picto: 'relais' },
     { motif: /^grove_dht11_definir$/,         nom: 'DHT11',                 champs: ['BROCHE'], picto: 'dht11' },
     { motif: /^grove_dht22_definir$/,         nom: 'DHT22',                 champs: ['BROCHE'], picto: 'dht22' },
@@ -65,7 +66,7 @@ const MODULES = [
     { motif: /^grove_scd30_/,                 nom: 'Capteur CO₂ SCD30',     i2c: true, picto: 'scd30', large: true },
     { motif: /^grove_scd41_/,                 nom: 'Capteur CO₂ SCD41',     i2c: true, picto: 'scd41' },
 ];
-const BLOC_EXTENSION = /^(grove_|servo_|dfr_|motorbit_)/;
+const BLOC_EXTENSION = /^(grove_|servo_|dfr_|motorbit_|carte_|bitmaker_)/;
 // Lecteur de l'etat en direct (majVivant) quand il differe du dessin : plusieurs capteurs partagent le dessin « puce ».
 const VIVANT = {
     'Capteur de pression': 'pression', 'Capteur COV': 'cov', 'Capteur de gestes': 'gestes', 'Température, humidité': 'th',
@@ -221,9 +222,13 @@ function lireMontage() {
     const types = blocs.map(b => b.type);
     const dfr = types.some(t => /^dfr_/.test(t));
     // Des blocs Motor:bit imposent cette carte, comme ceux de la DFR0548 (celle-ci l'emporte si les deux sont poses).
-    const motorbit = !dfr && (types.some(t => /^motorbit_/.test(t)) || choixCarte() === 'motorbit');
-    const imposee = dfr ? 'dfr' : types.some(t => /^motorbit_/.test(t)) ? 'motorbit' : '';
-    const bitmaker = !dfr && !motorbit && choixCarte() === 'bitmaker';
+    // Bloc « carte d'extension : … » ou blocs des LED de la BitMaker (nov. 2026) : ils imposent leur carte, comme les blocs
+    // de la DFR0548 et de la Motor:bit (qui l'emportent) ; sans eux, le choix du menu du montage.
+    const parBloc = types.some(t => t === 'carte_bitmaker' || /^bitmaker_/.test(t)) ? 'bitmaker'
+                  : types.includes('carte_grove_shield') ? 'grove' : '';
+    const motorbit = !dfr && (types.some(t => /^motorbit_/.test(t)) || (!parBloc && choixCarte() === 'motorbit'));
+    const imposee = dfr ? 'dfr' : types.some(t => /^motorbit_/.test(t)) ? 'motorbit' : parBloc;
+    const bitmaker = !dfr && !motorbit && (parBloc ? parBloc === 'bitmaker' : choixCarte() === 'bitmaker');
     const utile = types.some(t => BLOC_EXTENSION.test(t));
     const modules = new Map();
     const ajouter = (cle, m) => { if (!modules.has(cle)) { m.id = cle; modules.set(cle, m); } };
@@ -259,6 +264,11 @@ function lireMontage() {
             const n = Number(b.getFieldValue('SERVO'));
             ajouter('S' + n, { nom: 'Servomoteur', picto: 'servo', etiquette: 'S' + n, occupe: ['S' + n], cle: 'DFR S' + n,
                 fils: filsRangeeDfr(COLONNES_SERVO, yRangDfr(n - 1), [F.orange, F.rouge, F.marron]) });
+            continue;
+        }
+        // LED de la BitMaker (blocs bitmaker_led...) : soudees sur la carte, pas de module ni de cable (comme un ruban sur P13).
+        if (/^bitmaker_led/.test(b.type)) {
+            if (bitmaker) ajouter('ruban-carte', { nom: 'LED RGB', etiquette: 'LED de la carte (P13)', fils: [], surCarte: true, note: '' });
             continue;
         }
         const def = MODULES.find(m => m.motif.test(b.type));
@@ -356,20 +366,21 @@ function avecHubs(liste, i2c) {
     l'utilisateur, nov. 2026) : chaque fil entre par l'ouverture et finit sur sa broche, les fils decales en biais pour
     ne pas se cacher (noir a gauche et le moins enfonce, jaune a droite et le plus enfonce). */
 const HUB_BROCHES_Y = [12.5, 10.5, 8.5, 6.5];
+// J2 a J4 s'ouvrent vers le bas (variante B, nov. 2026) : broches en ordre inverse, GND la moins enfoncee en bas.
 function brochesHub(geo, prise) {
     const cx = HUB_PRISES[prise - 1];
-    return GROVE.map((c, i) => geo.point(cx - 1.6 + (3 - i) * 0.95, HUB_BROCHES_Y[i]));
+    return GROVE.map((c, i) => geo.point(cx - 1.6 + (3 - i) * 0.95, prise > 1 ? 19 - HUB_BROCHES_Y[i] : HUB_BROCHES_Y[i]));
 }
 const pointBroche = (p, c) => cercle(p.x, p.y, 2.4, `fill="${c}" stroke="#333" stroke-width="0.8"`);
 
-/** Cables des modules branches sur un hub : ils partent des broches de la prise (J2 a J4) du hub, vers le haut (la
-    prise s'ouvre vers le haut), une fois celui-ci place. */
+/** Cables des modules branches sur un hub : ils partent des broches de la prise (J2 a J4) du hub, vers le bas (la
+    prise s'ouvre vers le bas, vers les modules ; variante B, nov. 2026), une fois celui-ci place. */
 function relierHubs(modules) {
     for (const m of modules) {
         if (!m.source) continue;
         const hub = modules.find(x => x.id === m.source.hub), geo = hub && geometrie(hub);
         if (!geo) continue;
-        const a = geo.rot * Math.PI / 180, d = [Math.round(Math.sin(a)), Math.round(-Math.cos(a))];
+        const a = geo.rot * Math.PI / 180, d = [Math.round(-Math.sin(a)), Math.round(Math.cos(a))];
         const broches = brochesHub(geo, m.source.prise);
         m.fils = GROVE.map((c, i) => ({ x: broches[i].x, y: broches[i].y, d, c, surHub: true }));
     }
@@ -839,6 +850,23 @@ function dessinFil(f, fin, o) {
     return s;
 }
 
+/** Fiche Grove enfoncee dans la prise d'un module dessine (variante A choisie par l'utilisateur, nov. 2026) : boitier
+    blanc a l'ouverture de la prise, qui en depasse de FICHE_DEPASSE ; les fils arrivent a son dos. pts : bord de la
+    prise au droit de chaque contact (dans l'ordre des contacts) ; d : sens d'arrivee du cable (vers le module). */
+const FICHE_DEPASSE = 4.2 * K_MODULE, FICHE_ENFONCE = 1.6 * K_MODULE, FICHE_MARGE = 1.5 * K_MODULE;
+function dessinFiche(pts, d) {
+    const a0 = pts[0], a1 = pts[pts.length - 1], l = Math.hypot(a1.x - a0.x, a1.y - a0.y) || 1;
+    const u = [(a1.x - a0.x) / l, (a1.y - a0.y) / l];
+    const coin = (p, le, pr) => `${(p.x + u[0] * le + d[0] * pr).toFixed(1)},${(p.y + u[1] * le + d[1] * pr).toFixed(1)}`;
+    const corps = [coin(a0, -FICHE_MARGE, FICHE_ENFONCE), coin(a1, FICHE_MARGE, FICHE_ENFONCE),
+                   coin(a1, FICHE_MARGE, -FICHE_DEPASSE), coin(a0, -FICHE_MARGE, -FICHE_DEPASSE)].join(' ');
+    // Nervure du verrou, au milieu du dos de la fiche, et trait au ras de la prise
+    const loquet = [coin(a0, l * 0.3, -FICHE_DEPASSE * 0.55), coin(a1, -l * 0.3, -FICHE_DEPASSE * 0.55)];
+    return `<g class="montage-fiche"><polygon points="${corps}" fill="#f1efe8" stroke="#a9a597" stroke-width="1" stroke-linejoin="round"/>` +
+           `<polyline points="${coin(a0, -FICHE_MARGE, 0)} ${coin(a1, FICHE_MARGE, 0)}" fill="none" stroke="#c9c4b6" stroke-width="1"/>` +
+           `<polyline points="${loquet.join(' ')}" fill="none" stroke="#d6d1c3" stroke-width="2" stroke-linecap="round"/></g>`;
+}
+
 function dessinerScene(etat) {
     if (etat.carte === 'aucune') return { bas: '', hauteur: CARTE.y + CARTE.h + 20 };   // micro:bit seule
     const basCarte = etat.carte === 'dfr' ? DFR_BAS + 18 : etat.carte === 'motorbit' ? MB_BAS : etat.carte === 'bitmaker' ? BM_BAS : GROVE_PCB.y + GROVE_PCB.l;
@@ -860,7 +888,7 @@ function dessinerScene(etat) {
     if (surCarte) hauteur = Math.max(hauteur, basCarte + 50);
     if (surCarte) bas += texte(LARGEUR / 2, basCarte + 30, echap(surCarte.nom + ' · ' + surCarte.etiquette +
                                (surCarte.note ? ' · ' + surCarte.note : '')), 'class="montage-note" text-anchor="middle"');
-    let filsDessus = '', points = '';   // points des broches du hub : par-dessus les fils
+    let filsDessus = '', points = '', fiches = '';   // points des broches du hub et fiches Grove : par-dessus les fils
     for (const m of etat.modules) {
         if (m.x === undefined) continue;
         const fin = arrivee(m), n = m.fils.length;
@@ -879,6 +907,7 @@ function dessinerScene(etat) {
         // Module dessine (modele R4) : chaque fil arrive sur son contact de la prise (SIG, NC, VCC, GND), d'apres la serigraphie.
         if (contacts && contacts.length === n) {
             const conn = geo.def.connecteur, vertical = conn.sens === 'haut' || conn.sens === 'bas';
+            const bordsFiche = [];   // bord de la prise au droit de chaque contact, pour dessiner la fiche
             m.fils.forEach((f, iFil) => {
                 // Contact choisi par la couleur du fil (jaune SIG1, blanc SIG2, rouge VCC, noir GND) : l'ordre des fils
                 // depend de la carte (inverse sur la BitMaker, ou le noir arrivait sur SCL ; nov. 2026).
@@ -891,7 +920,20 @@ function dessinerScene(etat) {
                 // Le cable sort d'abord de sa prise dans le sens ou elle s'ouvre (vers le bas sous le shield Grove,
                 // sur le cote pour les prises laterales), sans traverser la carte ni les prises voisines (nov. 2026).
                 const haut = geo.cy - geo.h0 / 2, basM = geo.cy + geo.h0 / 2;
-                const yDessus = haut - 28, yDessous = basM + 12, xGauche = geo.cx - geo.w0 / 2 - 22;
+                let yDessus = haut - 28;
+                const yDessous = basM + 12, xGauche = geo.cx - geo.w0 / 2 - 22;
+                // Modules d'un hub (prises ouvertes vers le bas) : chaque prise a sa rangee, J2 la plus haute, J4 la plus
+                // basse ; sinon les cables de J2 et J3 suivent la meme rangee et se croisent (nov. 2026). Jamais plus
+                // haut que la sortie de la prise.
+                let basHub;
+                if (depuisHub) {
+                    const hubM = etat.modules.find(x => x.id === m.source.hub), gh = hubM && geometrie(hubM);
+                    if (gh) basHub = gh.cy + gh.h0 / 2;
+                    // Module au-dessus du hub (deplace par l'eleve) : le cable descend sous le hub puis remonte ; la
+                    // rangee de J2 est alors la plus basse (la plus eloignee des modules), sinon les cables se superposent.
+                    const decal = (4 - m.source.prise) * 26;
+                    if (gh) yDessus = haut > basHub ? Math.max(yDessus - decal, basHub + 14) : basHub + 14 + decal;
+                }
                 const [sx, sy] = f.d, surCarte = !depuisHub;
                 const sortie = { x: f.x + sx * 22, y: f.y + sy * 22 };
                 if (surCarte && sy > 0) sortie.y = Math.max(sortie.y, basCarte + 14);
@@ -944,9 +986,14 @@ function dessinerScene(etat) {
                 const yPassage = yArrivee;
                 passage.push([xc, yPassage], [xc, p.y], [xc + 14, p.y]);
                 const contour = geo.def.filsDessus && Object.assign({}, f, { passage });
-                const fil = dessinFil(m.fixe ? routeRuban(f, iFil, p, basCarte) : contour || f, { x: p.x, y: p.y, d: fin.d }, 0);
+                // Fiche Grove (sauf ruban fixe sur la carte) : le fil s'arrete au dos de la fiche, en dehors de la prise.
+                const avecFiche = !m.fixe;
+                if (avecFiche) bordsFiche[i] = p;
+                const bout = avecFiche ? { x: p.x - fin.d[0] * FICHE_DEPASSE, y: p.y - fin.d[1] * FICHE_DEPASSE } : p;
+                const fil = dessinFil(m.fixe ? routeRuban(f, iFil, p, basCarte) : contour || f, { x: bout.x, y: bout.y, d: fin.d }, 0);
                 if (geo.def.filsDessus || depuisHub) filsDessus += fil; else bas += fil;
             });
+            if (bordsFiche.filter(Boolean).length === n) fiches += dessinFiche(bordsFiche, fin.d);
             continue;
         }
         m.fils.forEach((f, i) => { const fil = dessinFil(f, fin, (i - (n - 1) / 2) * 6); if (depuisHub) filsDessus += fil; else bas += fil; });
@@ -988,7 +1035,7 @@ function dessinerScene(etat) {
         if (note) bas += texte(cx, yLib + 82, echap(note), `class="montage-note${m.alerte ? ' alerte' : ''}${m.conflit ? ' conflit' : ''}" text-anchor="middle"`);
         bas += '</g>';
     }
-    bas += filsDessus + points;
+    bas += filsDessus + fiches + points;
     return { bas, hauteur };
 }
 
@@ -1215,7 +1262,8 @@ function finirRedessin(etat) {
     }
     if (choixAuto) {
         choixAuto.hidden = !etat.imposee;
-        choixAuto.textContent = (etat.imposee === 'motorbit' ? 'Carte Motor:bit' : 'Carte DFR0548') + ' : choisie car le programme utilise ses blocs.';
+        choixAuto.textContent = ({ motorbit: 'Carte Motor:bit', bitmaker: 'Carte BitMaker V2', grove: 'Carte Grove Shield V2.0' }[etat.imposee] ||
+                                 'Carte DFR0548') + ' : choisie car le programme utilise ses blocs.';
     }
     resume.innerHTML = etat.modules.length
         // Chaque morceau traduit a part (en anglais) : la ligne entiere ne correspond a aucune cle du dictionnaire

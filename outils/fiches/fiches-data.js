@@ -35,6 +35,10 @@ function START() { return B('au_demarrage', null, { DO: S.apply(null, arguments)
 function LOOP() { return B('boucle_infinie', null, { DO: S.apply(null, arguments) }); }
 function QUAND(type, champs) { return B(type, champs, { DO: S.apply(null, Array.prototype.slice.call(arguments, 2)) }); }
 
+function LISTE() { var a = Array.prototype.slice.call(arguments), e = {}; a.forEach(function (v, i) { e['ADD' + i] = v; });
+  return V(Object.assign(B('lists_create_with', null, e), { extraState: { itemCount: a.length } })); }
+function OBTENIR(liste, ou, n) { var b = B('lists_getIndex', { MODE: 'GET', WHERE: ou }, { VALUE: V(liste) }); if (n != null) b.inputs.AT = N(n); return b; }
+
 window.FICHES = [
   {
     t: 'afficher_icone',
@@ -315,7 +319,7 @@ window.FICHES = [
     sert: 'Écrit un nombre ou un texte dans la **console**, sur une nouvelle ligne à chaque fois. Pratique pour suivre des mesures sans occuper la matrice de LED.',
     util: [
       'Accrochez dans la case un texte, un nombre, ou un bloc qui renvoie une valeur.',
-      'Ouvrez la console avec le bouton « Afficher la console » de la barre d\'outils, en haut : elle s\'ouvre en bas de l\'écran.',
+      'Ouvrez la console avec le bouton « Console » de la barre d\'outils, en haut : elle s\'ouvre en bas de l\'écran.',
     ],
     savoir: [
       'Sur la vraie carte, le texte part par le **câble USB** : il s\'affiche dans la console après « Connecter » (navigateur Chrome ou Edge).',
@@ -3443,5 +3447,379 @@ window.FICHES = [
     ],
     legende: 'Au démarrage, le robot V3 tourne à droite aux intersections en T, puis le suivi de ligne démarre.',
     exemple: [START(B('maqueen_v3_mode_T', { MODE: '2' }), B('maqueen_v3_suiveur', { ACTIF: '1' }))],
+  },
+  // ═══════════════ Listes (nov. 2026) ═══════════════
+  {
+    t: 'lists_create_with',
+    titre: 'créer une liste avec …',
+    sert: 'Renvoie une **liste** : plusieurs valeurs (textes, nombres…) rangées dans l\'ordre, sous un seul nom de variable.',
+    valeur: 'liste',
+    util: [
+      'Accrochez une valeur dans chaque case, puis rangez la liste dans une variable avec le bloc « définir … à ».',
+      'Pour ajouter ou retirer des cases, cliquez sur la **roue dentée** du bloc. Sans aucune case, le bloc crée une **liste vide**.',
+    ],
+    savoir: [
+      'Les éléments sont numérotés à partir de **1** : le premier élément porte le n° 1.',
+      'Une liste peut mélanger textes et nombres, mais il est plus clair de n\'y ranger qu\'une sorte de valeur.',
+    ],
+    legende: 'Au démarrage, trois prénoms sont rangés dans la liste « prenoms » ; à chaque secousse, un prénom tiré au hasard défile.',
+    exemple: [START(DEF('prenoms', LISTE(T('Léa'), T('Sam'), T('Noé')))),
+      QUAND('lorsque_geste', { GESTE: 'shake' }, DEFILE(OBTENIR(VAR('prenoms'), 'RANDOM')))],
+  },
+  {
+    t: 'lists_repeat',
+    titre: 'créer une liste avec l\'élément … répété … fois',
+    sert: 'Renvoie une **liste** qui contient plusieurs fois la même valeur : par exemple 5 scores qui valent tous 0.',
+    valeur: 'liste',
+    util: [
+      'Accrochez la valeur dans la première case et le nombre d\'éléments dans la seconde.',
+      'Rangez la liste dans une variable avec le bloc « définir … à ».',
+    ],
+    savoir: [
+      'Pratique pour **préparer** une liste de départ, que l\'on modifie ensuite avec le bloc « dans la liste … mettre n° … comme … ».',
+    ],
+    legende: 'Au démarrage, la liste « scores » reçoit cinq fois le nombre 0, puis elle défile : [0, 0, 0, 0, 0].',
+    exemple: [START(DEF('scores', V(B('lists_repeat', null, { ITEM: N(0), NUM: N(5) }))), DEFILE(VAR('scores')))],
+  },
+  {
+    t: 'lists_length',
+    titre: 'longueur de …',
+    sert: 'Renvoie le **nombre d\'éléments** de la liste (ou le nombre de caractères d\'un texte).',
+    valeur: 'nombre',
+    util: [
+      'Accrochez la variable de la liste dans la case du bloc.',
+    ],
+    savoir: [
+      'Une liste vide a une longueur de **0**.',
+      'Le dernier élément porte le numéro égal à la longueur de la liste.',
+    ],
+    legende: 'Au démarrage, la liste « prenoms » reçoit trois prénoms, puis la carte affiche sa longueur : 3.',
+    exemple: [START(DEF('prenoms', LISTE(T('Léa'), T('Sam'), T('Noé'))), AFF(B('lists_length', null, { VALUE: V(VAR('prenoms')) })))],
+  },
+  {
+    t: 'lists_isEmpty',
+    titre: '… est vide',
+    sert: 'Renvoie **vrai** si la liste ne contient aucun élément, **faux** sinon.',
+    valeur: 'logique',
+    util: [
+      'Accrochez la variable de la liste dans la case, puis placez le bloc dans un bloc « si ».',
+    ],
+    savoir: [
+      'Utile avant de prendre un élément : demander un élément à une liste vide **arrête le programme** avec une erreur.',
+    ],
+    legende: 'Au démarrage, la liste « courses » est vide : la carte affiche le visage triste.',
+    exemple: [START(DEF('courses', V(Object.assign(B('lists_create_with'), { extraState: { itemCount: 0 } }))),
+      SI(B('lists_isEmpty', null, { VALUE: V(VAR('courses')) }), S(ICONE('SAD')), S(ICONE('HAPPY'))))],
+  },
+  {
+    t: 'lists_indexOf',
+    titre: 'dans la liste … trouver la première occurrence de l\'élément …',
+    sert: 'Renvoie le **numéro** (la position) d\'un élément dans la liste.',
+    valeur: 'nombre',
+    util: [
+      'Accrochez la liste dans la première case et l\'élément cherché dans la seconde.',
+      'Choisissez **première** ou **dernière** occurrence quand l\'élément peut être présent plusieurs fois.',
+    ],
+    savoir: [
+      'Si l\'élément n\'est pas dans la liste, le bloc renvoie **0**.',
+      'Les textes doivent être identiques, majuscules et accents compris : « sam » n\'est pas « Sam ».',
+    ],
+    legende: 'Au démarrage, la carte cherche « Sam » dans la liste « prenoms » et affiche sa position : 2.',
+    exemple: [START(DEF('prenoms', LISTE(T('Léa'), T('Sam'), T('Noé'))),
+      AFF(B('lists_indexOf', { END: 'FIRST' }, { VALUE: V(VAR('prenoms')), FIND: T('Sam') })))],
+  },
+  {
+    t: 'lists_getIndex',
+    titre: 'dans la liste … obtenir n° …',
+    sert: 'Renvoie **un élément** de la liste : le n° choisi, le premier, le dernier ou un élément **au hasard**.',
+    util: [
+      'Accrochez la liste dans la première case, puis choisissez dans le menu quel élément prendre.',
+      'Avec « n° », écrivez le numéro de l\'élément (1 pour le premier).',
+      'Le menu « obtenir » propose aussi « obtenir et supprimer » et « supprimer » : l\'élément est alors retiré de la liste.',
+    ],
+    savoir: [
+      'Un numéro plus grand que la longueur de la liste **arrête le programme** avec une erreur : vérifiez avec le bloc « longueur de … ».',
+    ],
+    legende: 'Le bouton A fait défiler le premier prénom de la liste (Léa), le bouton B le dernier (Noé).',
+    exemple: [START(DEF('prenoms', LISTE(T('Léa'), T('Sam'), T('Noé')))),
+      QUAND('lorsque_bouton', { BOUTON: 'a' }, DEFILE(OBTENIR(VAR('prenoms'), 'FROM_START', 1))),
+      QUAND('lorsque_bouton', { BOUTON: 'b' }, DEFILE(OBTENIR(VAR('prenoms'), 'LAST')))],
+  },
+  {
+    t: 'lists_setIndex',
+    titre: 'dans la liste … mettre n° … comme …',
+    sert: '**Remplace** un élément de la liste par une nouvelle valeur (ou l\'**insère** à cette place).',
+    util: [
+      'Accrochez la liste, choisissez quel élément changer (n°, premier, dernier, au hasard), puis accrochez la nouvelle valeur.',
+      'Avec « insérer en », l\'élément s\'ajoute à cette place et la liste s\'allonge d\'un élément.',
+    ],
+    savoir: [
+      'Avec « mettre », la longueur de la liste **ne change pas** : l\'ancien élément est perdu.',
+    ],
+    legende: 'Un appui sur A remplace le prénom n° 2 (Sam) par « Max », puis la liste défile : [\'Léa\', \'Max\', \'Noé\'].',
+    exemple: [START(DEF('prenoms', LISTE(T('Léa'), T('Sam'), T('Noé')))),
+      QUAND('lorsque_bouton', { BOUTON: 'a' },
+        B('lists_setIndex', { MODE: 'SET', WHERE: 'FROM_START' }, { LIST: V(VAR('prenoms')), AT: N(2), TO: T('Max') }),
+        DEFILE(VAR('prenoms')))],
+  },
+  {
+    t: 'lists_getSublist',
+    titre: 'dans la liste … obtenir la sous-liste depuis le n° … jusqu\'au n° …',
+    sert: 'Renvoie une **nouvelle liste** faite d\'un morceau de la liste : les éléments entre deux numéros, ces deux numéros compris.',
+    valeur: 'liste',
+    util: [
+      'Accrochez la liste, puis choisissez le début et la fin du morceau (n°, depuis la fin, premier, dernier).',
+    ],
+    savoir: [
+      'La liste de départ **ne change pas** : le morceau est une copie.',
+    ],
+    legende: 'Au démarrage, la carte fait défiler les éléments n° 2 à n° 4 de la liste [1, 2, 3, 4, 5] : [2, 3, 4].',
+    exemple: [START(DEF('nombres', LISTE(N(1), N(2), N(3), N(4), N(5))),
+      DEFILE(B('lists_getSublist', { WHERE1: 'FROM_START', WHERE2: 'FROM_START' }, { LIST: V(VAR('nombres')), AT1: N(2), AT2: N(4) })))],
+  },
+
+  // ═══════════════ Graphique (blocs de l'éditeur R4, nov. 2026) ═══════════════
+  {
+    t: 'graph_tracer',
+    titre: 'tracer … dans la courbe …',
+    sert: [
+      'Ajoute un point au **graphique** : la **valeur** branchée donne la hauteur (axe Y), et le **temps** écoulé depuis le démarrage de la carte donne la position en largeur (axe X, en secondes).',
+      'Placé dans une boucle, il dessine l\'évolution d\'une mesure au cours du temps : une température qui monte, une lumière qui baisse…',
+    ],
+    util: [
+      'Le graphique s\'affiche dans l\'onglet **Graphique** de la console (bouton « Console » de la barre d\'outils).',
+      'Branchez un capteur (ou une variable) dans le bloc et donnez un **nom à la courbe**. Pour suivre deux mesures, utilisez deux blocs « tracer » avec deux noms différents.',
+      'Avec la vraie carte, cliquez « Connecter » dans la console (Chrome ou Edge) : les points arrivent par le câble USB.',
+    ],
+    savoir: [
+      'Mettez un bloc « attendre » dans la boucle (0,1 à 1 seconde) : sans pause, la carte envoie trop de points. Chaque courbe garde ses 600 derniers points.',
+      'Le bouton d\'export de la console enregistre les points dans un fichier Excel.',
+    ],
+    legende: 'Les axes sont nommés au démarrage, puis la température de la carte est ajoutée à la courbe « Température » toutes les 0,5 seconde.',
+    exemple: [START(B('graph_axes', { NOM_X: 'Temps (s)', NOM_Y: 'Température (°C)' })),
+              LOOP(B('graph_tracer', { COURBE: 'Température' }, { VAL: V(B('capteur_temperature')) }), ATT(0.5))],
+  },
+  {
+    t: 'graph_point',
+    titre: 'ajouter le point X … Y … à la courbe …',
+    sert: 'Ajoute un point au graphique dont vous choisissez **les deux valeurs** : X (en largeur) et Y (en hauteur). Pour tracer une grandeur **en fonction d\'une autre** que le temps : la distance en fonction de l\'angle, la lumière en fonction de la position…',
+    util: [
+      'Branchez une valeur dans X et une dans Y, et donnez un **nom à la courbe**. Les points d\'une même courbe sont reliés dans l\'ordre où ils arrivent.',
+      'Le graphique s\'affiche dans l\'onglet **Graphique** de la console.',
+    ],
+    savoir: [
+      'Pour mesurer en fonction du temps, le bloc « tracer … dans la courbe … » est plus simple : il prend le temps comme X tout seul.',
+      'Le bouton d\'export de la console enregistre les points dans un fichier Excel.',
+    ],
+    legende: 'La boucle « compter » fait varier x de 0 à 10 : chaque point a pour X la valeur de x et pour Y son carré (x × x). On voit apparaître une parabole.',
+    exemple: [START(B('graph_axes', { NOM_X: 'x', NOM_Y: 'x × x' }),
+                    B('controls_for', { VAR: { name: 'x' } }, { FROM: N(0), TO: N(10), BY: N(1),
+                      DO: S(B('graph_point', { COURBE: 'Carré' }, { X: V(VAR('x')), Y: V(B('math_arithmetic', { OP: 'MULTIPLY' }, { A: V(VAR('x')), B: V(VAR('x')) })) }), ATT(0.2)) }))],
+  },
+  {
+    t: 'graph_axes',
+    titre: 'nommer les axes : X … Y …',
+    sert: 'Écrit le **nom de chaque axe** du graphique, avec son unité : « Temps (s) » sous l\'axe horizontal (X), « Température (°C) » le long de l\'axe vertical (Y).',
+    util: [
+      'Placez ce bloc **une seule fois**, dans « au démarrage ». Cliquez dans les cases pour écrire vos noms.',
+      'Un graphique scientifique a toujours ses axes nommés, avec l\'unité entre parenthèses.',
+    ],
+    savoir: [
+      'Le nom des axes reste affiché après le bloc « effacer le graphique ».',
+    ],
+    legende: 'Les axes sont nommés au démarrage, puis la lumière mesurée par la matrice de LED est tracée chaque seconde.',
+    exemple: [START(B('graph_axes', { NOM_X: 'Temps (s)', NOM_Y: 'Lumière (0 à 255)' })),
+              LOOP(B('graph_tracer', { COURBE: 'Lumière' }, { VAL: V(B('capteur_luminosite')) }), ATT(1))],
+  },
+  {
+    t: 'graph_effacer',
+    titre: 'effacer le graphique',
+    sert: 'Efface **toutes les courbes** et toutes les mesures du graphique, pour recommencer une mesure à zéro.',
+    util: [
+      'Utilisez-le par exemple quand on appuie sur un bouton, pour refaire une mesure sans relancer le programme.',
+    ],
+    savoir: [
+      'Le nom des axes est gardé.',
+      'Une mesure effacée n\'est plus tracée : exportez-la d\'abord (bouton d\'export de la console) si vous voulez la garder.',
+    ],
+    legende: 'La température est tracée toutes les 0,5 seconde. Un appui sur le bouton A efface le graphique : une nouvelle mesure commence.',
+    exemple: [START(B('graph_axes', { NOM_X: 'Temps (s)', NOM_Y: 'Température (°C)' })),
+              LOOP(SI(BOUTON('a'), S(B('graph_effacer'))),
+                   B('graph_tracer', { COURBE: 'Température' }, { VAL: V(B('capteur_temperature')) }), ATT(0.5))],
+  },
+  {
+    t: 'graph_arreter',
+    titre: 'arrêter la mesure',
+    sert: 'Arrête la **mesure** : à partir de ce bloc, les blocs « tracer … dans la courbe … » et « ajouter le point X … Y … à la courbe … » ne tracent plus rien. Le graphique **reste affiché** : on peut l\'analyser ou exporter les mesures.',
+    util: [
+      'Placez-le là où la mesure doit s\'arrêter : par exemple dans un bloc « si », quand on appuie sur un bouton ou quand une mesure dépasse une valeur.',
+      'Le reste du programme **continue** : la matrice de LED, les modules, les moteurs… fonctionnent toujours. Seuls les points ne sont plus ajoutés au graphique.',
+    ],
+    savoir: [
+      'Le bloc peut se trouver dans la boucle et être répété : la mesure s\'arrête une seule fois.',
+      'Pour faire repartir la mesure, utilisez le bloc « reprendre la mesure ».',
+      'Les points envoyés pendant l\'arrêt ne sont pas non plus exportés vers Excel.',
+    ],
+    legende: 'La température est tracée toutes les 0,5 seconde. Un appui sur le bouton A arrête la mesure : la courbe s\'arrête, mais le graphique reste affiché.',
+    exemple: [START(B('graph_axes', { NOM_X: 'Temps (s)', NOM_Y: 'Température (°C)' })),
+              LOOP(B('graph_tracer', { COURBE: 'Température' }, { VAL: V(B('capteur_temperature')) }),
+                   SI(BOUTON('a'), S(B('graph_arreter'))), ATT(0.5))],
+  },
+  {
+    t: 'graph_reprendre',
+    titre: 'reprendre la mesure',
+    sert: 'Fait **repartir** une mesure arrêtée par le bloc « arrêter la mesure » : les blocs « tracer … dans la courbe … » et « ajouter le point X … Y … à la courbe … » tracent de nouveau leurs points.',
+    util: [
+      'Placez-le là où la mesure doit repartir : par exemple dans un bloc « si », quand on appuie sur un second bouton.',
+      'Avec deux boutons, on fait une mesure « à la demande » : un bouton arrête la mesure, l\'autre la fait repartir.',
+    ],
+    savoir: [
+      'Les points reprennent **à la suite** des courbes : rien n\'est effacé. La courbe est **coupée** pendant la pause : pas de trait entre le dernier point avant l\'arrêt et le premier point après la reprise.',
+      'Le temps a continué de compter pendant la pause : la courbe reprend plus loin à droite.',
+      'Si la mesure n\'était pas arrêtée, ce bloc ne fait rien : il peut se trouver dans la boucle et être répété.',
+    ],
+    legende: 'La température est tracée toutes les 0,5 seconde. Le bouton A arrête la mesure, le bouton B la fait repartir : la courbe est coupée pendant la pause.',
+    exemple: [START(B('graph_axes', { NOM_X: 'Temps (s)', NOM_Y: 'Température (°C)' })),
+              LOOP(SI(BOUTON('a'), S(B('graph_arreter'))), SI(BOUTON('b'), S(B('graph_reprendre'))),
+                   B('graph_tracer', { COURBE: 'Température' }, { VAL: V(B('capteur_temperature')) }), ATT(0.5))],
+  },
+  // ═══════════════ Grove › Lecteur MP3 v3.0 (nov. 2026) ═══════════════
+  {
+    t: 'grove_mp3_piste',
+    titre: 'lecteur MP3 sur … : jouer la piste n° …',
+    sert: 'Fait jouer au **lecteur MP3 Grove (v3.0)** un morceau de sa carte microSD : la piste 1 est le premier fichier MP3 copié sur la carte, la piste 2 le deuxième, etc.',
+    util: [
+      'Copiez les fichiers MP3 **directement à la racine** de la carte microSD (pas dans un dossier), dans l\'ordre voulu. Glissez la carte au dos du module.',
+      'Branchez le module sur un port Grove de la carte (P0/P14, P1/P15 ou P2/P16) et choisissez ce port dans le bloc. Branchez un haut-parleur (prise SPK) ou un casque (prise PHONE).',
+    ],
+    savoir: [
+      'Le numéro suit l\'**ordre de copie** des fichiers sur la carte, pas leur nom : copiez-les un par un, dans l\'ordre.',
+      'La carte doit être formatée en **FAT16 ou FAT32** (32 Go au plus).',
+      'Pendant l\'envoi d\'un ordre (quelques millisecondes), la liaison USB est prêtée au module : la console continue de fonctionner, mais le module ne peut pas renvoyer d\'information (piste en cours, volume).',
+      'Dans le simulateur, les pistes **1 à 6** sont six courtes mélodies libres de droits (Au clair de la lune, Frère Jacques, Ode à la joie…) : on les entend, et le panneau « Périphériques » montre la piste, son titre, l\'état (lecture, pause, arrêt), le volume et le mode.',
+    ],
+    legende: 'Au démarrage, le volume est réglé à 20, puis la piste 1 de la carte microSD est jouée.',
+    exemple: [START(B('grove_mp3_volume', { PORT: 'pin1, pin15' }, { VOLUME: N(20) }),
+                    B('grove_mp3_piste', { PORT: 'pin1, pin15' }, { PISTE: N(1) }))],
+  },
+  {
+    t: 'grove_mp3_ordre',
+    titre: 'lecteur MP3 sur … : Lecture / Pause, Stop, Suivant…',
+    sert: 'Commande le **lecteur MP3 Grove (v3.0)** : mettre en pause ou relancer, arrêter, passer au morceau suivant ou précédent, monter ou baisser le volume.',
+    util: [
+      '« Lecture / Pause » est une **bascule** : le même ordre met en pause si ça joue, et relance si c\'est en pause.',
+      '« Volume + » et « Volume − » changent le volume de 2 crans (sur 31).',
+    ],
+    savoir: [
+      'Avec un bouton, utilisez le bloc « lorsque le bouton … est appuyé » : l\'ordre part une seule fois par appui. Dans « répéter indéfiniment », il partirait plusieurs fois pendant l\'appui.',
+      'Le volume de départ supposé est 20 : réglez-le d\'abord avec le bloc « régler le volume à … » pour que « Volume + » et « Volume − » partent de la bonne valeur.',
+      'Il faut au moins 0,1 seconde entre deux ordres : le bloc attend tout seul si besoin.',
+    ],
+    legende: 'La piste 1 démarre au lancement. Le bouton A met en pause ou relance, le bouton B passe au morceau suivant.',
+    exemple: [START(B('grove_mp3_piste', { PORT: 'pin1, pin15' }, { PISTE: N(1) })),
+              QUAND('lorsque_bouton', { BOUTON: 'a' }, B('grove_mp3_ordre', { PORT: 'pin1, pin15', ORDRE: 'lecture_pause' })),
+              QUAND('lorsque_bouton', { BOUTON: 'b' }, B('grove_mp3_ordre', { PORT: 'pin1, pin15', ORDRE: 'suivant' }))],
+  },
+  {
+    t: 'grove_mp3_volume',
+    titre: 'lecteur MP3 sur … : régler le volume à … (0 à 31)',
+    sert: 'Règle le **volume** du lecteur MP3 Grove (v3.0), de **0** (muet) à **31** (le plus fort).',
+    util: [
+      'Placez-le dans « au démarrage », avant de jouer une piste, pour partir d\'un volume connu.',
+      'Accrochez un nombre, ou une valeur qui change : par exemple un potentiomètre transformé en nombre de 0 à 31.',
+    ],
+    savoir: [
+      'Une valeur plus petite que 0 devient 0, une valeur plus grande que 31 devient 31.',
+    ],
+    legende: 'Le volume est réglé à 10, la piste 2 est jouée, puis le volume monte à 25 au bout de 5 secondes.',
+    exemple: [START(B('grove_mp3_volume', { PORT: 'pin1, pin15' }, { VOLUME: N(10) }),
+                    B('grove_mp3_piste', { PORT: 'pin1, pin15' }, { PISTE: N(2) }), ATT(5),
+                    B('grove_mp3_volume', { PORT: 'pin1, pin15' }, { VOLUME: N(25) }))],
+  },
+  {
+    t: 'grove_mp3_mode',
+    titre: 'lecteur MP3 sur … : mode de lecture …',
+    sert: 'Choisit ce que fait le lecteur MP3 Grove (v3.0) **à la fin d\'une piste** : s\'arrêter (**une fois**), **répéter la piste**, **tout répéter** (toutes les pistes en boucle) ou jouer les pistes au hasard (**aléatoire**).',
+    util: [
+      'Placez-le dans « au démarrage », avant de jouer une piste.',
+    ],
+    savoir: [
+      '« tout répéter » est pratique pour une musique de fond ; « répéter la piste » pour un son d\'alarme qui tourne en boucle.',
+    ],
+    legende: 'Au démarrage, le lecteur passe en « tout répéter », puis joue la piste 1 : toutes les pistes s\'enchaînent sans fin.',
+    exemple: [START(B('grove_mp3_mode', { PORT: 'pin1, pin15', MODE: '2' }),
+                    B('grove_mp3_piste', { PORT: 'pin1, pin15' }, { PISTE: N(1) }))],
+  },
+  // ═══════════════ Cartes d'extension : Grove Shield V2.0 et BitMaker V2 (nov. 2026) ═══════════════
+  {
+    t: 'carte_grove_shield',
+    titre: 'carte d\'extension : Grove Shield V2.0',
+    sert: 'Indique que le programme utilise la carte d\'extension **Grove Shield V2.0** (Seeed), sur laquelle la micro:bit est enfoncée et où l\'on branche les modules Grove : le **montage** dessine alors cette carte.',
+    util: [
+      'Placez ce bloc dans « au démarrage ». Branchez ensuite les modules sur les prises de la carte : P0/P14, P1/P15, P2/P16 et I2C.',
+    ],
+    savoir: [
+      'Ce bloc ne produit **aucun code** pour la carte : le Grove Shield ne fait que relier les broches de la micro:bit à ses prises.',
+      'Sans ce bloc, la carte se choisit dans le menu du montage.',
+    ],
+    legende: 'La carte Grove Shield V2.0 est choisie, puis le buzzer branché sur P0/P14 sonne une demi-seconde.',
+    exemple: [START(B('carte_grove_shield'), B('grove_buzzer_bip', { BROCHE: 'pin0' }, { DUREE: N(500) }))],
+  },
+  {
+    t: 'carte_bitmaker',
+    titre: 'carte d\'extension : BitMaker V2',
+    sert: 'Indique que le programme utilise la carte d\'extension **BitMaker V2** (Seeed), avec ses six prises Grove et ses quatre LED RGB : le **montage** dessine alors cette carte.',
+    util: [
+      'Placez ce bloc dans « au démarrage ». Les blocs des LED de la carte choisissent aussi la BitMaker tout seuls.',
+    ],
+    savoir: [
+      'Ce bloc ne produit **aucun code** pour la carte.',
+      'Les prises de la BitMaker ne sont pas celles du Grove Shield : regardez dans le montage sur quelle prise brancher chaque module.',
+    ],
+    legende: 'La carte BitMaker V2 est choisie, puis ses quatre LED s\'allument en bleu.',
+    exemple: [START(B('carte_bitmaker'), B('bitmaker_leds', { COULEUR: '0x0000FF' }))],
+  },
+  {
+    t: 'bitmaker_led',
+    titre: 'BitMaker : LED n° … de la carte en …',
+    sert: 'Allume une des **4 LED RGB** soudées sur la carte **BitMaker V2**, dans la couleur choisie.',
+    util: [
+      'Choisissez le numéro de la LED (1 à 4) et la couleur. La couleur **noir** éteint la LED.',
+    ],
+    savoir: [
+      'Les LED de la carte sont reliées à la broche **P13** : n\'y branchez pas d\'autre module.',
+      'Les autres LED gardent leur couleur.',
+    ],
+    legende: 'Les LED 1 à 4 s\'allument en rouge l\'une après l\'autre, puis toutes s\'éteignent, sans fin.',
+    exemple: [LOOP(B('bitmaker_led', { LED: '0', COULEUR: '0xFF0000' }), ATT(0.3), B('bitmaker_led', { LED: '1', COULEUR: '0xFF0000' }), ATT(0.3),
+                   B('bitmaker_led', { LED: '2', COULEUR: '0xFF0000' }), ATT(0.3), B('bitmaker_led', { LED: '3', COULEUR: '0xFF0000' }), ATT(0.3),
+                   B('bitmaker_leds_eteindre'), ATT(0.3))],
+  },
+  {
+    t: 'bitmaker_leds',
+    titre: 'BitMaker : toutes les LED de la carte en …',
+    sert: 'Allume les **4 LED RGB** de la carte **BitMaker V2** dans la même couleur.',
+    util: [
+      'Choisissez la couleur dans la liste du bloc.',
+    ],
+    savoir: [
+      'Les LED de la carte sont reliées à la broche **P13**.',
+    ],
+    legende: 'Les LED de la carte s\'allument en vert quand on appuie sur le bouton A, en rouge sur le bouton B.',
+    exemple: [QUAND('lorsque_bouton', { BOUTON: 'a' }, B('bitmaker_leds', { COULEUR: '0x00FF00' })),
+              QUAND('lorsque_bouton', { BOUTON: 'b' }, B('bitmaker_leds', { COULEUR: '0xFF0000' }))],
+  },
+  {
+    t: 'bitmaker_leds_eteindre',
+    titre: 'BitMaker : éteindre les LED de la carte',
+    sert: 'Éteint les **4 LED RGB** de la carte **BitMaker V2**.',
+    util: [
+      'Placez-le après un affichage, par exemple avec le bloc « attendre » pour faire clignoter les LED.',
+    ],
+    savoir: [
+      'Seules les LED de la carte s\'éteignent : la matrice de LED de la micro:bit ne change pas.',
+    ],
+    legende: 'Les LED de la carte clignotent en jaune, une demi-seconde allumées, une demi-seconde éteintes.',
+    exemple: [LOOP(B('bitmaker_leds', { COULEUR: '0xFFFF00' }), ATT(0.5), B('bitmaker_leds_eteindre'), ATT(0.5))],
   },
 ];

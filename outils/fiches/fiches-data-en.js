@@ -248,7 +248,7 @@ window.FICHES_EN = {
     sert: 'Writes a number or a text in the **console**, on a new line each time. Handy to follow measurements without using the LED matrix.',
     util: [
       'Attach in the box a text, a number, or a block that returns a value.',
-      'Open the console with the ‘Show the console’ button of the toolbar, at the top: it opens at the bottom of the screen.',
+      'Open the console with the ‘Console’ button of the toolbar, at the top: it opens at the bottom of the screen.',
     ],
     savoir: [
       'On the real board, the text goes through the **USB cable**: it shows in the console after ‘Connect’ (Chrome or Edge browser).',
@@ -3008,8 +3008,306 @@ window.FICHES_EN = {
     ],
     legende: 'At start, the V3 robot turns right at T-junctions, then line following starts.',
   },
+  // ═══════════════ Lists (Nov. 2026) ═══════════════
+  lists_create_with: {
+    titre: 'create list with …',
+    sert: 'Returns a **list**: several values (texts, numbers…) stored in order, under a single variable name.',
+    util: [
+      'Attach a value in each slot, then store the list in a variable with the ‘set … to’ block.',
+      'To add or remove slots, click the **gear** of the block. With no slot at all, the block creates an **empty list**.',
+    ],
+    savoir: [
+      'Items are numbered from **1**: the first item is no. 1.',
+      'A list can mix texts and numbers, but it is clearer to store only one kind of value in it.',
+    ],
+    legende: 'At start, three first names are stored in the ‘names’ list; each time the board is shaken, a first name picked at random scrolls.',
+  },
+  lists_repeat: {
+    titre: 'create list with item … repeated … times',
+    sert: 'Returns a **list** that contains the same value several times: for example 5 scores that are all 0.',
+    util: [
+      'Attach the value in the first slot and the number of items in the second.',
+      'Store the list in a variable with the ‘set … to’ block.',
+    ],
+    savoir: [
+      'Handy to **prepare** a starting list, which you then change with the ‘in list … set # … as …’ block.',
+    ],
+    legende: 'At start, the ‘scores’ list gets the number 0 five times, then it scrolls: [0, 0, 0, 0, 0].',
+  },
+  lists_length: {
+    titre: 'length of …',
+    sert: 'Returns the **number of items** in the list (or the number of characters in a text).',
+    util: [
+      'Attach the list variable in the slot of the block.',
+    ],
+    savoir: [
+      'An empty list has a length of **0**.',
+      'The last item has the number equal to the length of the list.',
+    ],
+    legende: 'At start, the ‘names’ list gets three first names, then the board shows its length: 3.',
+  },
+  lists_isEmpty: {
+    titre: '… is empty',
+    sert: 'Returns **true** if the list has no item, **false** otherwise.',
+    util: [
+      'Attach the list variable in the slot, then put the block in an ‘if’ block.',
+    ],
+    savoir: [
+      'Useful before taking an item: asking an empty list for an item **stops the program** with an error.',
+    ],
+    legende: 'At start, the ‘shopping’ list is empty: the board shows the sad face.',
+  },
+  lists_indexOf: {
+    titre: 'in list … find first occurrence of item …',
+    sert: 'Returns the **number** (the position) of an item in the list.',
+    util: [
+      'Attach the list in the first slot and the item you are looking for in the second.',
+      'Choose **first** or **last** occurrence when the item may be there several times.',
+    ],
+    savoir: [
+      'If the item is not in the list, the block returns **0**.',
+      'Texts must be identical, capital letters and accents included: ‘sam’ is not ‘Sam’.',
+    ],
+    legende: 'At start, the board looks for ‘Sam’ in the ‘names’ list and shows its position: 2.',
+  },
+  lists_getIndex: {
+    titre: 'in list … get # …',
+    sert: 'Returns **one item** of the list: the chosen number, the first, the last or a **random** item.',
+    util: [
+      'Attach the list in the first slot, then choose in the menu which item to take.',
+      'With ‘#’, type the number of the item (1 for the first).',
+      'The ‘get’ menu also offers ‘get and remove’ and ‘remove’: the item is then taken out of the list.',
+    ],
+    savoir: [
+      'A number larger than the length of the list **stops the program** with an error: check with the ‘length of …’ block.',
+    ],
+    legende: 'Button A scrolls the first name of the list (Léa), button B the last one (Noé).',
+  },
+  lists_setIndex: {
+    titre: 'in list … set # … as …',
+    sert: '**Replaces** an item of the list with a new value (or **inserts** it at that place).',
+    util: [
+      'Attach the list, choose which item to change (#, first, last, random), then attach the new value.',
+      'With ‘insert at’, the item is added at that place and the list gets one item longer.',
+    ],
+    savoir: [
+      'With ‘set’, the length of the list **does not change**: the old item is lost.',
+    ],
+    legende: 'Pressing A replaces first name no. 2 (Sam) with ‘Max’, then the list scrolls: [\'Léa\', \'Max\', \'Noé\'].',
+  },
+  lists_getSublist: {
+    titre: 'in list … get sub-list from # … to # …',
+    sert: 'Returns a **new list** made of a piece of the list: the items between two numbers, both numbers included.',
+    util: [
+      'Attach the list, then choose the start and the end of the piece (#, # from end, first, last).',
+    ],
+    savoir: [
+      'The starting list **does not change**: the piece is a copy.',
+    ],
+    legende: 'At start, the board scrolls items no. 2 to no. 4 of the list [1, 2, 3, 4, 5]: [2, 3, 4].',
+  },
+  // ═══════════════ Graph (blocks of the R4 editor, Nov. 2026) ═══════════════
+  graph_tracer: {
+    titre: 'plot … on curve …',
+    sert: [
+      'Adds a point to the **graph**: the **value** attached gives the height (Y axis), and the **time** elapsed since the board started gives the position across (X axis, in seconds).',
+      'Placed in a loop, it draws how a measurement changes over time: a temperature going up, light going down…',
+    ],
+    util: [
+      'The graph shows in the **Graph** tab of the console (‘Console’ button of the toolbar).',
+      'Attach a sensor (or a variable) to the block and give the **curve a name**. To follow two measurements, use two ‘plot’ blocks with two different names.',
+      'With the real board, click ‘Connect’ in the console (Chrome or Edge): the points arrive through the USB cable.',
+    ],
+    savoir: [
+      'Put a ‘wait’ block in the loop (0.1 to 1 second): without a pause, the board sends too many points. Each curve keeps its last 600 points.',
+      'The export button of the console saves the points in an Excel file.',
+    ],
+    legende: 'The axes are named on start, then the board\'s temperature is added to the ‘Temperature’ curve every 0.5 second.',
+  },
+  graph_point: {
+    titre: 'add the point X … Y … to curve …',
+    sert: 'Adds a point to the graph whose **two values** you choose: X (across) and Y (upwards). To plot a quantity **against another one** than time: the distance against the angle, the light against the position…',
+    util: [
+      'Attach a value to X and one to Y, and give the **curve a name**. The points of the same curve are joined in the order they arrive.',
+      'The graph shows in the **Graph** tab of the console.',
+    ],
+    savoir: [
+      'To measure against time, the ‘plot … on curve …’ block is simpler: it takes the time as X by itself.',
+      'The export button of the console saves the points in an Excel file.',
+    ],
+    legende: 'The ‘count’ loop makes x go from 0 to 10: each point has the value of x as X and its square (x × x) as Y. A parabola appears.',
+  },
+  graph_axes: {
+    titre: 'name the axes: X … Y …',
+    sert: 'Writes the **name of each axis** of the graph, with its unit: ‘Time (s)’ under the horizontal axis (X), ‘Temperature (°C)’ along the vertical axis (Y).',
+    util: [
+      'Put this block **only once**, in ‘on start’. Click in the boxes to type your names.',
+      'A scientific graph always has named axes, with the unit in brackets.',
+    ],
+    savoir: [
+      'The names of the axes stay after the ‘clear the graph’ block.',
+    ],
+    legende: 'The axes are named on start, then the light measured by the LED matrix is plotted every second.',
+  },
+  graph_effacer: {
+    titre: 'clear the graph',
+    sert: 'Clears **all the curves** and all the measurements from the graph, to start a measurement again from scratch.',
+    util: [
+      'Use it for example when a button is pressed, to redo a measurement without restarting the program.',
+    ],
+    savoir: [
+      'The names of the axes are kept.',
+      'A cleared measurement is no longer plotted: export it first (export button of the console) if you want to keep it.',
+    ],
+    legende: 'The temperature is plotted every 0.5 second. Pressing button A clears the graph: a new measurement starts.',
+  },
+  graph_arreter: {
+    titre: 'stop the measurement',
+    sert: 'Stops the **measurement**: from this block on, the ‘plot … on curve …’ and ‘add the point X … Y … to curve …’ blocks no longer plot anything. The graph **stays on screen**: you can study it or export the measurements.',
+    util: [
+      'Put it where the measurement must stop: for example in an ‘if’ block, when a button is pressed or when a measurement goes over a value.',
+      'The rest of the program **carries on**: the LED matrix, the modules, the motors… still work. Only the points are no longer added to the graph.',
+    ],
+    savoir: [
+      'The block can be in the loop and be repeated: the measurement stops only once.',
+      'To restart the measurement, use the ‘resume the measurement’ block.',
+      'The points sent while it is stopped are not exported to Excel either.',
+    ],
+    legende: 'The temperature is plotted every 0.5 second. Pressing button A stops the measurement: the curve stops, but the graph stays on screen.',
+  },
+  graph_reprendre: {
+    titre: 'resume the measurement',
+    sert: '**Restarts** a measurement stopped by the ‘stop the measurement’ block: the ‘plot … on curve …’ and ‘add the point X … Y … to curve …’ blocks plot their points again.',
+    util: [
+      'Put it where the measurement must restart: for example in an ‘if’ block, when a second button is pressed.',
+      'With two buttons, you make a measurement ‘on demand’: one button stops the measurement, the other restarts it.',
+    ],
+    savoir: [
+      'The points carry on **following** the curves: nothing is cleared. The curve is **cut** during the pause: no line between the last point before the stop and the first point after resuming.',
+      'Time kept counting during the pause: the curve starts again further to the right.',
+      'If the measurement was not stopped, this block does nothing: it can be in the loop and be repeated.',
+    ],
+    legende: 'The temperature is plotted every 0.5 second. Button A stops the measurement, button B restarts it: the curve is cut during the pause.',
+  },
+  // ═══════════════ Grove › MP3 player v3.0 (Nov. 2026) ═══════════════
+  grove_mp3_piste: {
+    titre: 'MP3 player on … : play track no. …',
+    sert: 'Makes the **Grove MP3 player (v3.0)** play a track from its microSD card: track 1 is the first MP3 file copied to the card, track 2 the second, and so on.',
+    util: [
+      'Copy the MP3 files **straight to the root** of the microSD card (not into a folder), in the order you want. Slide the card into the back of the module.',
+      'Plug the module into a Grove port of the board (P0/P14, P1/P15 or P2/P16) and choose this port in the block. Plug in a speaker (SPK socket) or headphones (PHONE socket).',
+    ],
+    savoir: [
+      'The number follows the **order in which the files were copied** to the card, not their names: copy them one by one, in order.',
+      'The card must be formatted in **FAT16 or FAT32** (32 GB at most).',
+      'While a command is sent (a few milliseconds), the USB link is lent to the module: the console keeps working, but the module cannot send any information back (current track, volume).',
+      'In the simulator, tracks **1 to 6** are six short copyright-free tunes (Au clair de la lune, Frère Jacques, Ode to Joy…): you hear them, and the ‘Devices’ panel shows the track, its title, the state (playing, paused, stopped), the volume and the mode.',
+    ],
+    legende: 'On start, the volume is set to 20, then track 1 of the microSD card is played.',
+  },
+  grove_mp3_ordre: {
+    titre: 'MP3 player on … : Play / Pause, Stop, Next…',
+    sert: 'Controls the **Grove MP3 player (v3.0)**: pause or resume, stop, go to the next or previous track, turn the volume up or down.',
+    util: [
+      '‘Play / Pause’ is a **toggle**: the same command pauses if it is playing, and resumes if it is paused.',
+      '‘Volume +’ and ‘Volume −’ change the volume by 2 steps (out of 31).',
+    ],
+    savoir: [
+      'With a button, use the ‘when button … is pressed’ block: the command is sent only once per press. In ‘forever’, it would be sent several times while the button is held down.',
+      'The assumed starting volume is 20: set it first with the ‘set the volume to …’ block so that ‘Volume +’ and ‘Volume −’ start from the right value.',
+      'At least 0.1 second is needed between two commands: the block waits by itself if needed.',
+    ],
+    legende: 'Track 1 starts when the program runs. Button A pauses or resumes, button B goes to the next track.',
+  },
+  grove_mp3_volume: {
+    titre: 'MP3 player on … : set the volume to … (0 to 31)',
+    sert: 'Sets the **volume** of the Grove MP3 player (v3.0), from **0** (silent) to **31** (loudest).',
+    util: [
+      'Put it in ‘on start’, before playing a track, to start from a known volume.',
+      'Attach a number, or a value that changes: for example a potentiometer turned into a number from 0 to 31.',
+    ],
+    savoir: [
+      'A value below 0 becomes 0, a value above 31 becomes 31.',
+    ],
+    legende: 'The volume is set to 10, track 2 is played, then the volume goes up to 25 after 5 seconds.',
+  },
+  grove_mp3_mode: {
+    titre: 'MP3 player on … : play mode …',
+    sert: 'Chooses what the Grove MP3 player (v3.0) does **at the end of a track**: stop (**once**), **repeat the track**, **repeat all** (all the tracks in a loop) or play the tracks in random order (**shuffle**).',
+    util: [
+      'Put it in ‘on start’, before playing a track.',
+    ],
+    savoir: [
+      '‘repeat all’ is handy for background music; ‘repeat the track’ for an alarm sound that loops.',
+    ],
+    legende: 'On start, the player switches to ‘repeat all’, then plays track 1: all the tracks follow one another endlessly.',
+  },
+  // ═══════════════ Expansion boards: Grove Shield V2.0 and BitMaker V2 (Nov. 2026) ═══════════════
+  carte_grove_shield: {
+    titre: 'expansion board: Grove Shield V2.0',
+    sert: 'Shows that the program uses the **Grove Shield V2.0** expansion board (Seeed), into which the micro:bit is pushed and where the Grove modules are plugged in: the **wiring view** then draws this board.',
+    util: [
+      'Put this block in ‘on start’. Then plug the modules into the sockets of the board: P0/P14, P1/P15, P2/P16 and I2C.',
+    ],
+    savoir: [
+      'This block produces **no code** for the board: the Grove Shield only links the pins of the micro:bit to its sockets.',
+      'Without this block, the board is chosen in the menu of the wiring view.',
+    ],
+    legende: 'The Grove Shield V2.0 board is chosen, then the buzzer plugged into P0/P14 sounds for half a second.',
+  },
+  carte_bitmaker: {
+    titre: 'expansion board: BitMaker V2',
+    sert: 'Shows that the program uses the **BitMaker V2** expansion board (Seeed), with its six Grove sockets and its four RGB LEDs: the **wiring view** then draws this board.',
+    util: [
+      'Put this block in ‘on start’. The blocks for the board LEDs also choose the BitMaker by themselves.',
+    ],
+    savoir: [
+      'This block produces **no code** for the board.',
+      'The sockets of the BitMaker are not those of the Grove Shield: check in the wiring view which socket each module goes into.',
+    ],
+    legende: 'The BitMaker V2 board is chosen, then its four LEDs light up in blue.',
+  },
+  bitmaker_led: {
+    titre: 'BitMaker: LED no. … of the board in …',
+    sert: 'Lights one of the **4 RGB LEDs** soldered on the **BitMaker V2** board, in the chosen colour.',
+    util: [
+      'Choose the number of the LED (1 to 4) and the colour. The colour **black** turns the LED off.',
+    ],
+    savoir: [
+      'The LEDs of the board are linked to pin **P13**: do not plug any other module into it.',
+      'The other LEDs keep their colour.',
+    ],
+    legende: 'LEDs 1 to 4 light up in red one after the other, then they all turn off, forever.',
+  },
+  bitmaker_leds: {
+    titre: 'BitMaker: all the board LEDs in …',
+    sert: 'Lights the **4 RGB LEDs** of the **BitMaker V2** board in the same colour.',
+    util: [
+      'Choose the colour in the block\'s list.',
+    ],
+    savoir: [
+      'The LEDs of the board are linked to pin **P13**.',
+    ],
+    legende: 'The board LEDs light up in green when button A is pressed, in red with button B.',
+  },
+  bitmaker_leds_eteindre: {
+    titre: 'BitMaker: turn off the board LEDs',
+    sert: 'Turns off the **4 RGB LEDs** of the **BitMaker V2** board.',
+    util: [
+      'Put it after showing something, for example with the ‘wait’ block to make the LEDs blink.',
+    ],
+    savoir: [
+      'Only the board LEDs turn off: the LED matrix of the micro:bit does not change.',
+    ],
+    legende: 'The board LEDs blink in yellow, on for half a second, off for half a second.',
+  },
 };
 window.EXEMPLES_EN = {
+  'prenoms': 'names',
+  'scores': 'scores',
+  'courses': 'shopping',
+  'nombres': 'numbers',
+  'Max': 'Max',
   'Prêt': 'Ready',
   'Chaud': 'Hot',
   'Frais': 'Cool',
@@ -3022,4 +3320,10 @@ window.EXEMPLES_EN = {
   'Démarrage': 'Start',
   'dé': 'die',
   'i': 'i',
+  'Température': 'Temperature',
+  'Temps (s)': 'Time (s)',
+  'Température (°C)': 'Temperature (°C)',
+  'Carré': 'Square',
+  'Lumière': 'Light',
+  'Lumière (0 à 255)': 'Light (0 to 255)',
 };
