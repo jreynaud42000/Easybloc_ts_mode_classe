@@ -67,7 +67,10 @@ async function chargerExercices() {
 }
 const exo = id => plat.find(e => e.id === id);
 const fait = id => profil().faits[id];
-const accessible = i => donnees.libre || i === 0 || !!fait(plat[i - 1].id);
+// Un niveau qui porte « apres » (id d'un exercice) est une serie independante : son premier exercice s'ouvre des que
+// cet exercice est fait, sans attendre les niveaux places avant lui (Mode classe : un niveau par robot, apres 8.4).
+const debutSerie = i => i > 0 && !!plat[i].niveau.apres && plat[i - 1].niveau !== plat[i].niveau;
+const accessible = i => donnees.libre || i === 0 || !!fait(debutSerie(i) ? plat[i].niveau.apres : plat[i - 1].id);
 
 // ---------------------------------------------------------------- lecture des blocs (validation)
 const blocs = () => (ws() ? ws().getAllBlocks(false) : []);
@@ -216,7 +219,9 @@ function suivant() {
     memoriserProgramme(session.id);
     const i = plat.findIndex(e => e.id === session.id);
     const prochain = plat[i + 1];
-    if (!prochain) { session = null; masquerPanneau(); ouvrirFenetre('exercices'); return; }
+    // Fin d'une serie independante (ou entree dans l'une d'elles) : retour a la liste pour choisir la suite.
+    const finSerie = prochain && prochain.niveau !== plat[i].niveau && (prochain.niveau.apres || plat[i].niveau.apres);
+    if (!prochain || finSerie) { session = null; masquerPanneau(); ouvrirFenetre('exercices'); return; }
     espaceDe(prochain);
     session = { mode: 'tp', id: prochain.id, debut: Date.now(), indices: 0, solution: false, essais: 0, valide: false };
     afficherPanneau();
