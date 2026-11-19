@@ -639,6 +639,111 @@
           "solution": {"blocks": [{"type": "au_demarrage", "inputs": {"DO": {"block": {"type": "graph_axes", "fields": {"NOM_X": "Temps (s)", "NOM_Y": "Température (°C)"}}}}, "next": {"block": {"type": "boucle_infinie", "inputs": {"DO": {"block": {"type": "graph_tracer", "fields": {"COURBE": "Courbe 1"}, "inputs": {"VAL": {"block": {"type": "capteur_temperature"}}}, "next": {"block": {"type": "controls_if", "extraState": {"hasElse": true}, "inputs": {"IF0": {"block": {"type": "logic_compare", "fields": {"OP": "GT"}, "inputs": {"A": {"block": {"type": "capteur_temperature"}}, "B": {"block": {"type": "math_number", "fields": {"NUM": 25}}}}}}, "DO0": {"block": {"type": "afficher_icone", "fields": {"ICONE": "SAD"}}}, "ELSE": {"block": {"type": "effacer_ecran"}}}, "next": {"block": {"type": "attendre_temps", "fields": {"UNITE": "s"}, "inputs": {"TEMPS": {"block": {"type": "math_number", "fields": {"NUM": 2}}}}}}}}}}}}}, "x": 40, "y": 40}]}
         }
       ]
+    },
+    {
+      "id": "n9",
+      "titre": "Niveau 9 — Robots",
+      "notion": "Faire avancer, tourner et réagir les robots Maqueen Plus, Maqueen Lite et Kitrobot v2",
+      "exercices": [
+        {
+          "id": "9.1",
+          "titre": "Le Maqueen démarre",
+          "consigne": "Avec le robot Maqueen Plus, fais avancer le robot pendant 2 secondes (les deux moteurs à 150), puis arrête-le.",
+          "indices": [
+            "Les blocs sont dans « Robots », sous-catégorie « Maqueen Plus ».",
+            "Un moteur tourne jusqu'à un autre ordre : il faut le démarrer, attendre, puis l'arrêter.",
+            "Au démarrage : « moteur les deux à 150 », « attendre 2 s », « arrêter le moteur les deux »."
+          ],
+          "regle": {"tous": [{"bloc": "maqueen_moteur", "dans": ["au_demarrage"]}, {"bloc": "attendre_temps", "dans": ["au_demarrage"]}, {"bloc": "maqueen_arreter", "dans": ["au_demarrage"]}]},
+          "solution": {"blocks": [{"type": "au_demarrage", "inputs": {"DO": {"block": {"type": "maqueen_moteur", "fields": {"COTE": "les_deux"}, "inputs": {"VITESSE": {"block": {"type": "math_number", "fields": {"NUM": 150}}}}, "next": {"block": {"type": "attendre_temps", "fields": {"UNITE": "s"}, "inputs": {"TEMPS": {"block": {"type": "math_number", "fields": {"NUM": 2}}}}, "next": {"block": {"type": "maqueen_arreter", "fields": {"COTE": "les_deux"}}}}}}}}, "next": {"block": {"type": "boucle_infinie"}}, "x": 40, "y": 40}]}
+        },
+        {
+          "id": "9.2",
+          "titre": "Les lumières du Maqueen",
+          "consigne": "Avec le Maqueen Plus : le bouton A allume les deux phares et met toutes les DEL RGB en vert ; le bouton B éteint les phares et les DEL RGB.",
+          "indices": [
+            "Les blocs sont dans « Robots » › « Maqueen Plus », groupe « Phares et DEL ».",
+            "Il faut deux blocs « lorsque le bouton … est pressé » : un pour A, un pour B.",
+            "Bouton A : « phare les deux allumé », « DEL RGB toutes en vert ». Bouton B : « phare les deux éteint », « éteindre les DEL RGB »."
+          ],
+          "regle": {"tous": [{"bloc": "lorsque_bouton", "champ": {"BOUTON": "a"}, "contient": [{"bloc": "maqueen_phare", "champ": {"ETAT": "1"}}, "maqueen_rgb_couleur"]}, {"bloc": "lorsque_bouton", "champ": {"BOUTON": "b"}, "contient": [{"bloc": "maqueen_phare", "champ": {"ETAT": "0"}}, "maqueen_rgb_eteindre"]}]},
+          "solution": {"blocks": [{"type": "au_demarrage", "next": {"block": {"type": "boucle_infinie"}}, "x": 40, "y": 40}, {"type": "lorsque_bouton", "fields": {"BOUTON": "a"}, "inputs": {"DO": {"block": {"type": "maqueen_phare", "fields": {"COTE": "les_deux", "ETAT": "1"}, "next": {"block": {"type": "maqueen_rgb_couleur", "fields": {"INDEX": "4", "COULEUR": "0x00FF00"}}}}}}, "x": 40, "y": 200}, {"type": "lorsque_bouton", "fields": {"BOUTON": "b"}, "inputs": {"DO": {"block": {"type": "maqueen_phare", "fields": {"COTE": "les_deux", "ETAT": "0"}, "next": {"block": {"type": "maqueen_rgb_eteindre"}}}}}, "x": 40, "y": 340}]}
+        },
+        {
+          "id": "9.3",
+          "titre": "Stop devant l'obstacle",
+          "consigne": "Le Maqueen Plus avance. Si son capteur ultrason voit un obstacle à moins de 15 cm, il s'arrête ; sinon, il continue d'avancer.",
+          "indices": [
+            "La distance se lit avec « distance (cm) capteur ultrason Maqueen », dans « Robots » › « Maqueen Plus ».",
+            "Dans « répéter indéfiniment », un « si … sinon » compare la distance à 15.",
+            "si « distance < 15 » alors « arrêter le moteur les deux » sinon « moteur les deux à 150 »."
+          ],
+          "regle": {"bloc": "controls_if", "ancetre": "boucle_infinie", "contient": ["maqueen_distance", "logic_compare", "maqueen_arreter", "maqueen_moteur"]},
+          "solution": {"blocks": [{"type": "au_demarrage", "next": {"block": {"type": "boucle_infinie", "inputs": {"DO": {"block": {"type": "controls_if", "inputs": {"IF0": {"block": {"type": "logic_compare", "fields": {"OP": "LT"}, "inputs": {"A": {"block": {"type": "maqueen_distance"}}, "B": {"block": {"type": "math_number", "fields": {"NUM": 15}}}}}}, "DO0": {"block": {"type": "maqueen_arreter", "fields": {"COTE": "les_deux"}}}, "ELSE": {"block": {"type": "maqueen_moteur", "fields": {"COTE": "les_deux"}, "inputs": {"VITESSE": {"block": {"type": "math_number", "fields": {"NUM": 150}}}}}}}, "extraState": {"hasElse": true}}}}}}, "x": 40, "y": 40}]}
+        },
+        {
+          "id": "9.4",
+          "titre": "Le suiveur de ligne",
+          "consigne": "Le Maqueen Plus suit une ligne noire : si le capteur gauche (L1) voit la ligne, il tourne à gauche ; si le capteur droit (R1) la voit, il tourne à droite ; sinon, il avance tout droit.",
+          "indices": [
+            "Le bloc « capteur de ligne … sur la ligne » est dans « Robots » › « Maqueen Plus », groupe « Capteurs de ligne ».",
+            "Un « si … sinon si … sinon » dans « répéter indéfiniment ». Pour tourner, la roue du côté de la ligne s'arrête et l'autre continue.",
+            "si L1 sur la ligne : moteur gauche à 0, moteur droit à 100 ; sinon si R1 sur la ligne : moteur gauche à 100, moteur droit à 0 ; sinon : moteur les deux à 100."
+          ],
+          "points": 2,
+          "regle": {"bloc": "controls_if", "ancetre": "boucle_infinie", "contient": [{"bloc": "maqueen_ligne_etat", "champ": {"CAPTEUR": "L1"}}, {"bloc": "maqueen_ligne_etat", "champ": {"CAPTEUR": "R1"}}, "maqueen_moteur"]},
+          "solution": {"blocks": [{"type": "au_demarrage", "next": {"block": {"type": "boucle_infinie", "inputs": {"DO": {"block": {"type": "controls_if", "inputs": {"IF0": {"block": {"type": "maqueen_ligne_etat", "fields": {"CAPTEUR": "L1"}}}, "DO0": {"block": {"type": "maqueen_moteur", "fields": {"COTE": "gauche"}, "inputs": {"VITESSE": {"block": {"type": "math_number", "fields": {"NUM": 0}}}}, "next": {"block": {"type": "maqueen_moteur", "fields": {"COTE": "droit"}, "inputs": {"VITESSE": {"block": {"type": "math_number", "fields": {"NUM": 100}}}}}}}}, "IF1": {"block": {"type": "maqueen_ligne_etat", "fields": {"CAPTEUR": "R1"}}}, "DO1": {"block": {"type": "maqueen_moteur", "fields": {"COTE": "gauche"}, "inputs": {"VITESSE": {"block": {"type": "math_number", "fields": {"NUM": 100}}}}, "next": {"block": {"type": "maqueen_moteur", "fields": {"COTE": "droit"}, "inputs": {"VITESSE": {"block": {"type": "math_number", "fields": {"NUM": 0}}}}}}}}, "ELSE": {"block": {"type": "maqueen_moteur", "fields": {"COTE": "les_deux"}, "inputs": {"VITESSE": {"block": {"type": "math_number", "fields": {"NUM": 100}}}}}}}, "extraState": {"elseIfCount": 1, "hasElse": true}}}}}}, "x": 40, "y": 40}]}
+        },
+        {
+          "id": "9.5",
+          "titre": "Le Maqueen Lite se gare",
+          "consigne": "Avec le Maqueen Lite : le robot avance ; à moins de 10 cm d'un mur, il s'arrête et allume ses deux DEL. Sinon, ses DEL restent éteintes.",
+          "indices": [
+            "Les blocs sont dans « Robots », sous-catégorie « Maqueen Lite ».",
+            "Dans « répéter indéfiniment », un « si … sinon » compare la distance à 10.",
+            "si « distance < 10 » : « arrêter le moteur les deux », « DEL les deux allumée » ; sinon : « moteur les deux à 100 », « DEL les deux éteinte »."
+          ],
+          "regle": {"bloc": "controls_if", "ancetre": "boucle_infinie", "contient": ["maqueenlite_distance", "logic_compare", "maqueenlite_arreter", {"bloc": "maqueenlite_del", "champ": {"ETAT": "TRUE"}}, "maqueenlite_moteur"]},
+          "solution": {"blocks": [{"type": "au_demarrage", "next": {"block": {"type": "boucle_infinie", "inputs": {"DO": {"block": {"type": "controls_if", "inputs": {"IF0": {"block": {"type": "logic_compare", "fields": {"OP": "LT"}, "inputs": {"A": {"block": {"type": "maqueenlite_distance"}}, "B": {"block": {"type": "math_number", "fields": {"NUM": 10}}}}}}, "DO0": {"block": {"type": "maqueenlite_arreter", "fields": {"COTE": "les_deux"}, "next": {"block": {"type": "maqueenlite_del", "fields": {"COTE": "les_deux", "ETAT": "TRUE"}}}}}, "ELSE": {"block": {"type": "maqueenlite_moteur", "fields": {"COTE": "les_deux"}, "inputs": {"VITESSE": {"block": {"type": "math_number", "fields": {"NUM": 100}}}}, "next": {"block": {"type": "maqueenlite_del", "fields": {"COTE": "les_deux", "ETAT": "FALSE"}}}}}}, "extraState": {"hasElse": true}}}}}}, "x": 40, "y": 40}]}
+        },
+        {
+          "id": "9.6",
+          "titre": "Le Kitrobot trace un carré",
+          "consigne": "Avec le Kitrobot v2, fais parcourir un carré au robot : 4 fois de suite, avancer d'une case puis pivoter à droite.",
+          "indices": [
+            "Les blocs sont dans « Robots » › « Kitrobot v2 », groupe « Déplacement ».",
+            "Le bloc « répéter … fois » de « Boucles » évite d'écrire quatre fois les mêmes blocs.",
+            "Au démarrage : « répéter 4 fois » contenant « avancer d'une case » puis « pivoter à droite »."
+          ],
+          "regle": {"bloc": "controls_repeat_ext", "entrees": {"TIMES": 4}, "contient": ["kitrobot_case_avant", "kitrobot_pivoter_droite"]},
+          "solution": {"blocks": [{"type": "au_demarrage", "inputs": {"DO": {"block": {"type": "controls_repeat_ext", "inputs": {"TIMES": {"block": {"type": "math_number", "fields": {"NUM": 4}}}, "DO": {"block": {"type": "kitrobot_case_avant", "next": {"block": {"type": "kitrobot_pivoter_droite"}}}}}}}}, "next": {"block": {"type": "boucle_infinie"}}, "x": 40, "y": 40}]}
+        },
+        {
+          "id": "9.7",
+          "titre": "Le radar de recul",
+          "consigne": "Avec le Kitrobot v2 : quand un obstacle est à moins de 10 cm, le buzzer sonne (440 Hz pendant 200 ms) et la LED RGB 0 passe au rouge ; sinon, la LED 0 est verte.",
+          "indices": [
+            "La distance, le buzzer et les LED sont dans « Robots » › « Kitrobot v2 ».",
+            "Dans « répéter indéfiniment », un « si … sinon » compare la distance à 10.",
+            "si « distance < 10 » : « buzzer 440 Hz pendant 200 ms », « LED RGB 0 à rouge » ; sinon : « LED RGB 0 à vert »."
+          ],
+          "regle": {"bloc": "controls_if", "ancetre": "boucle_infinie", "contient": ["kitrobot_distance", "logic_compare", "kitrobot_buzzer", "kitrobot_del_couleur"]},
+          "solution": {"blocks": [{"type": "au_demarrage", "next": {"block": {"type": "boucle_infinie", "inputs": {"DO": {"block": {"type": "controls_if", "inputs": {"IF0": {"block": {"type": "logic_compare", "fields": {"OP": "LT"}, "inputs": {"A": {"block": {"type": "kitrobot_distance"}}, "B": {"block": {"type": "math_number", "fields": {"NUM": 10}}}}}}, "DO0": {"block": {"type": "kitrobot_buzzer", "inputs": {"FREQUENCE": {"block": {"type": "math_number", "fields": {"NUM": 440}}}, "DUREE": {"block": {"type": "math_number", "fields": {"NUM": 200}}}}, "next": {"block": {"type": "kitrobot_del_couleur", "fields": {"COULEUR": "0xFF0000"}, "inputs": {"INDEX": {"block": {"type": "math_number", "fields": {"NUM": 0}}}}}}}}, "ELSE": {"block": {"type": "kitrobot_del_couleur", "fields": {"COULEUR": "0x00FF00"}, "inputs": {"INDEX": {"block": {"type": "math_number", "fields": {"NUM": 0}}}}}}}, "extraState": {"hasElse": true}}}}}}, "x": 40, "y": 40}]}
+        },
+        {
+          "id": "9.8",
+          "titre": "Projet : le robot explorateur",
+          "consigne": "Avec le Maqueen Plus : le robot avance avec ses DEL en vert. Devant un obstacle à moins de 20 cm, ses DEL passent au rouge, il recule pendant 1 seconde, puis tourne sur place pendant 1 seconde avant de repartir.",
+          "indices": [
+            "Combine ce que tu as appris : le capteur ultrason, une condition, les moteurs, les DEL et des attentes.",
+            "Dans « répéter indéfiniment », un « si … sinon ». Pour reculer, une vitesse négative ; pour tourner sur place, les deux roues en sens opposés.",
+            "si « distance < 20 » : DEL toutes en rouge, moteur les deux à -100, attendre 1 s, moteur gauche à 100, moteur droit à -100, attendre 1 s ; sinon : DEL toutes en vert, moteur les deux à 150."
+          ],
+          "points": 2,
+          "regle": {"bloc": "controls_if", "ancetre": "boucle_infinie", "contient": ["maqueen_distance", "logic_compare", "maqueen_rgb_couleur", "maqueen_moteur", "attendre_temps"]},
+          "solution": {"blocks": [{"type": "au_demarrage", "next": {"block": {"type": "boucle_infinie", "inputs": {"DO": {"block": {"type": "controls_if", "inputs": {"IF0": {"block": {"type": "logic_compare", "fields": {"OP": "LT"}, "inputs": {"A": {"block": {"type": "maqueen_distance"}}, "B": {"block": {"type": "math_number", "fields": {"NUM": 20}}}}}}, "DO0": {"block": {"type": "maqueen_rgb_couleur", "fields": {"INDEX": "4", "COULEUR": "0xFF0000"}, "next": {"block": {"type": "maqueen_moteur", "fields": {"COTE": "les_deux"}, "inputs": {"VITESSE": {"block": {"type": "math_number", "fields": {"NUM": -100}}}}, "next": {"block": {"type": "attendre_temps", "fields": {"UNITE": "s"}, "inputs": {"TEMPS": {"block": {"type": "math_number", "fields": {"NUM": 1}}}}, "next": {"block": {"type": "maqueen_moteur", "fields": {"COTE": "gauche"}, "inputs": {"VITESSE": {"block": {"type": "math_number", "fields": {"NUM": 100}}}}, "next": {"block": {"type": "maqueen_moteur", "fields": {"COTE": "droit"}, "inputs": {"VITESSE": {"block": {"type": "math_number", "fields": {"NUM": -100}}}}, "next": {"block": {"type": "attendre_temps", "fields": {"UNITE": "s"}, "inputs": {"TEMPS": {"block": {"type": "math_number", "fields": {"NUM": 1}}}}}}}}}}}}}}}}, "ELSE": {"block": {"type": "maqueen_rgb_couleur", "fields": {"INDEX": "4", "COULEUR": "0x00FF00"}, "next": {"block": {"type": "maqueen_moteur", "fields": {"COTE": "les_deux"}, "inputs": {"VITESSE": {"block": {"type": "math_number", "fields": {"NUM": 150}}}}}}}}}, "extraState": {"hasElse": true}}}}}}, "x": 40, "y": 40}]}
+        }
+      ]
     }
   ]
 }
