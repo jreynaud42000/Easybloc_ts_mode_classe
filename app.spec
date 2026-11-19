@@ -22,7 +22,7 @@ exe = EXE(
     a.binaries,
     a.datas,
     [],
-    name='MicrobitEasybloc_V2.0E',
+    name='MicrobitEasybloc_ModeClasse',   # nom propre au Mode classe (nov. 2026), distinct de l'editeur micro:bit
     version='version_info.txt',
     icon='icone.ico',   # carte micro:bit sur un robot (outils/icone/creer_icone.py, variante C, nov. 2026)
     debug=False,
